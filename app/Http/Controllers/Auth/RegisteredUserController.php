@@ -13,6 +13,12 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * NOTE: Public self-registration is disabled by project policy.
+ * This controller is retained for reference and potential future re-enable,
+ * but its routes are commented out in routes/auth.php.
+ * Do not expose /register in production. Admins should provision users.
+ */
 class RegisteredUserController extends Controller
 {
     /**
