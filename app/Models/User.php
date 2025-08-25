@@ -6,11 +6,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use OwenIt\Auditing\Auditable;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+/**
+ * @property string $auditEvent
+ * @property array<string,mixed> $auditCustomOld
+ * @property array<string,mixed> $auditCustomNew
+ * @property bool $isCustomEvent
+ */
+class User extends Authenticatable implements AuditableContract
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use Auditable, HasFactory, HasRoles, Notifiable;
+
+    /**
+     * Explicit guard for Spatie Permission.
+     */
+    protected string $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +43,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Attributes excluded from auditing.
+     *
+     * @var list<string>
+     */
+    protected $auditExclude = [
         'password',
         'remember_token',
     ];

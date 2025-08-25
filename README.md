@@ -8,8 +8,10 @@ Base inicial del proyecto con Laravel 12 y React + TypeScript (Inertia) lista pa
 - [Instalación](#instalación)
 - [Uso rápido](#uso-rápido)
 - [Configuración](#configuración)
+- [Permisos (Spatie)](#permisos-spatie)
 - [Tema (shadcn/ui — Supabase)](#tema-shadcnui--supabase)
 - [Convenciones (Commits y Ramas)](#convenciones-commits-y-ramas)
+- [Guía de commits](#guía-de-commits)
 - [CI / Calidad](#ci--calidad)
 - [Versionado y Releases](#versionado-y-releases)
 - [Estructura](#estructura)
@@ -95,6 +97,71 @@ composer run dev
 - Mensajes del backend usan helpers de localización. Para cadenas sueltas se utiliza `lang/es.json`.
     - Ej.: mensaje de recuperación: "A reset link will be sent if the account exists." → "Si la cuenta existe, se enviará un enlace de restablecimiento." (definido en `lang/es.json`).
 
+## Permisos (Spatie)
+
+- **Paquete**: spatie/laravel-permission.
+- **Fuente única de verdad**: `config/permissions.php` (agregador) que fusiona todos los módulos de `config/permissions/*.php`.
+- **BD**: se agregó la columna `permissions.description` para etiquetas legibles.
+- **Seeder**: `database/seeders/PermissionsSeeder.php` usa `updateOrCreate` para sincronizar permisos y descripciones desde config.
+
+Estructura:
+
+```text
+config/
+  permissions.php           # Agregador (no definir permisos aquí directamente)
+  permissions/
+    users.php               # Módulo Users
+    settings.php            # Módulo Settings
+```
+
+Ejemplo de un módulo (`config/permissions/users.php`):
+
+```php
+<?php
+return [
+    'permissions' => [
+        'users.index', 'users.view', 'users.create', 'users.update', 'users.delete',
+    ],
+    'descriptions' => [
+        'users.index' => 'Listar usuarios',
+        'users.view' => 'Ver usuario',
+        'users.create' => 'Crear usuario',
+        'users.update' => 'Actualizar usuario',
+        'users.delete' => 'Eliminar usuario',
+    ],
+];
+```
+
+Agregador (`config/permissions.php`):
+
+```php
+<?php
+$permissions = $descriptions = [];
+foreach (glob(__DIR__.'/permissions/*.php') as $file) {
+    $data = require $file;
+    $permissions = array_merge($permissions, $data['permissions'] ?? []);
+    $descriptions = array_merge($descriptions, $data['descriptions'] ?? []);
+}
+return [
+    'guard' => 'web',
+    'permissions' => array_values(array_unique($permissions)),
+    'descriptions' => $descriptions,
+];
+```
+
+Convenciones y tips:
+
+- **Naming**: `modulo.recurso.accion` (p.ej. `settings.password.update`).
+- **UI/i18n**: puedes usar `config('permissions.descriptions')` o traducir en runtime: `__('permissions.'.$permission->name)`.
+- **Detectar duplicados**: el agregador hace `array_unique` en permisos.
+
+Pasos tras cambiar permisos:
+
+```bash
+php artisan config:clear
+php artisan db:seed --class=Database\\Seeders\\PermissionsSeeder
+```
+
 ## Tema (shadcn/ui — Supabase)
 
 El tema Supabase de shadcn/ui ya viene preconfigurado en este proyecto.
@@ -113,6 +180,39 @@ El tema Supabase de shadcn/ui ya viene preconfigurado en este proyecto.
     - Pre-commit: ejecuta Pint/ESLint/Prettier en archivos staged.
     - Commit-msg: valida formato de commits con commitlint.
     - Tras `npm install`, Husky se instala automáticamente por `scripts.prepare`. Si es tu primer setup, asegúrate de dar permisos: `chmod +x .husky/*`.
+
+## Guía de commits
+
+- **Formato:** Conventional Commits → `type(scope): subject`
+    - Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `build`, `ci`, `chore`, `perf`, `revert`.
+    - Scope opcional y en minúsculas: `auth`, `readme`, `phpstan`, `composer`, etc.
+    - Subject en imperativo, sin punto final.
+- **Reglas de commitlint** (resumen):
+    - Header corto y descriptivo.
+    - Body opcional con líneas ≤ 100 caracteres.
+- **Ejemplos válidos:**
+    - `feat(auth): agrega 2FA por TOTP`
+    - `fix(settings): corrige validación de contraseña débil`
+    - `docs(readme): guía de commits y verificación local`
+    - `chore(phpstan): usa larastan/larastan y extension.neon`
+- **Cuerpo (body) cuando aplique:** explica el porqué del cambio; líneas cortas.
+- **Mensajes multilínea (CLI):**
+    ```bash
+    git add .
+    git commit -m "docs(readme): guía de commits y verificación local" \
+      -m "chore(phpstan): cambia a larastan/larastan y usa solo extension.neon" \
+      -m "chore(phpstan): elimina parámetro obsoleto para PHPStan 2.x"
+    git push origin main
+    ```
+- **Flujo recomendado antes de commitear (replica CI):**
+    ```bash
+    npm run lint:ci && npm run typecheck && npm run format:check \
+      && composer run analyse && vendor/bin/pint -n --test \
+      && npm run build && php artisan test -q
+    ```
+- **Notas:**
+    - Si el hook `commit-msg` falla por longitud, parte el body en varias `-m` o acórtalo.
+    - Usa `BREAKING CHANGE:` en el footer si hay cambios incompatibles.
 
 ## CI / Calidad
 

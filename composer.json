@@ -13,7 +13,9 @@
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "tightenco/ziggy": "^2.4"
+        "tightenco/ziggy": "^2.4",
+        "owen-it/laravel-auditing": "^14.0",
+        "spatie/laravel-permission": "^6.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -22,7 +24,9 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^11.5.3",
+        "phpunit/phpunit": "11.5.33",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0",
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0"
     },

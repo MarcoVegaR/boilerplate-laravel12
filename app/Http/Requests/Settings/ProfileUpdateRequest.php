@@ -9,6 +9,11 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        return (bool) $this->user()?->can('settings.profile.update');
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

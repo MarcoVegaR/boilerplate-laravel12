@@ -3,7 +3,9 @@
 namespace Tests\Feature\Settings;
 
 use App\Models\User;
+use Database\Seeders\PermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class ProfileUpdateTest extends TestCase
@@ -12,7 +14,10 @@ class ProfileUpdateTest extends TestCase
 
     public function test_profile_page_is_displayed()
     {
+        $this->seed(PermissionsSeeder::class);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $user = User::factory()->create();
+        $user->givePermissionTo('settings.profile.view');
 
         $response = $this
             ->actingAs($user)
@@ -23,7 +28,10 @@ class ProfileUpdateTest extends TestCase
 
     public function test_profile_information_can_be_updated()
     {
+        $this->seed(PermissionsSeeder::class);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $user = User::factory()->create();
+        $user->givePermissionTo('settings.profile.update');
 
         $response = $this
             ->actingAs($user)
@@ -45,7 +53,10 @@ class ProfileUpdateTest extends TestCase
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged()
     {
+        $this->seed(PermissionsSeeder::class);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $user = User::factory()->create();
+        $user->givePermissionTo('settings.profile.update');
 
         $response = $this
             ->actingAs($user)
@@ -61,9 +72,14 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
+    // Account deletion disabled
+    /*
     public function test_user_can_delete_their_account()
     {
+        $this->seed(PermissionsSeeder::class);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $user = User::factory()->create();
+        $user->givePermissionTo('settings.profile.delete');
 
         $response = $this
             ->actingAs($user)
@@ -78,10 +94,15 @@ class ProfileUpdateTest extends TestCase
         $this->assertGuest();
         $this->assertNull($user->fresh());
     }
+    */
 
+    /*
     public function test_correct_password_must_be_provided_to_delete_account()
     {
+        $this->seed(PermissionsSeeder::class);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $user = User::factory()->create();
+        $user->givePermissionTo('settings.profile.delete');
 
         $response = $this
             ->actingAs($user)
@@ -96,4 +117,5 @@ class ProfileUpdateTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+    */
 }
