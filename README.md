@@ -13,6 +13,7 @@ Base inicial del proyecto con Laravel 12 y React + TypeScript (Inertia) lista pa
 - [Convenciones (Commits y Ramas)](#convenciones-commits-y-ramas)
 - [Guía de commits](#guía-de-commits)
 - [CI / Calidad](#ci--calidad)
+- [Documentación](#documentación)
 - [Versionado y Releases](#versionado-y-releases)
 - [Estructura](#estructura)
 - [Scripts útiles](#scripts-útiles)
@@ -236,6 +237,45 @@ Notas:
 - Archivo: `release.config.js`.
 - Workflow: `/.github/workflows/release.yml`.
 - Genera `CHANGELOG.md` y crea GitHub Releases con notas, a partir de Conventional Commits.
+
+## Documentación
+
+La documentación del proyecto se sirve con MkDocs Material siguiendo Diátaxis.
+
+Guía rápida:
+
+```bash
+# (Opcional) Crear entorno virtual
+python -m venv .venv && source .venv/bin/activate
+
+# Instalar dependencias de documentación
+pip install -r docs/requirements.txt
+
+# Servir localmente (hot reload)
+mkdocs serve
+
+# Build estricto (falla con warnings/enlaces rotos)
+mkdocs build --strict
+
+# Deploy manual a GitHub Pages (normalmente lo hace CI)
+mkdocs gh-deploy --force --clean
+```
+
+Alternativamente, con npm scripts (requiere tener mkdocs en PATH):
+
+```bash
+npm run docs:serve
+npm run docs:build
+npm run docs:deploy
+```
+
+Notas y buenas prácticas:
+
+- Usa `plugins: [search, i18n, redirects]` en `mkdocs.yml` para búsqueda multilenguaje y redirecciones.
+- Define `site_url` en `mkdocs.yml` para canonicals correctos.
+- No commitees el directorio `site/` (está en `.gitignore`).
+- No mezcles documentación de usuario y técnica; usa las secciones de Diátaxis.
+- MkDocs no debe incluirse en contenedores de Laravel en producción.
 
 ## Estructura
 

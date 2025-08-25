@@ -9,6 +9,7 @@
 /.nova
 /.phpunit.cache
 /.vscode
+/.windsurf
 /.zed
 /bootstrap/ssr
 /node_modules
@@ -23,3 +24,15 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+
+# MkDocs build output
+site/
+# Python virtual environment
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# MkDocs local override config (do not commit)
+mkdocs.local.yml

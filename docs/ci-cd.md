@@ -55,6 +55,39 @@ Esta guía resume qué valida la CI y cómo replicarlo localmente antes de commi
     vendor/bin/pest
     ```
 
+## Documentación (MkDocs) — desarrollo local
+
+1. Crear y activar venv de Python (opcional pero recomendado):
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+```
+
+2. Instalar dependencias de documentación (versionadas):
+
+```bash
+pip install -r docs/requirements.txt
+```
+
+3. Servir o compilar documentación:
+
+```bash
+mkdocs serve -a 127.0.0.1:8002   # hot reload
+mkdocs build --strict            # build estricto
+```
+
+Alternativamente (si mkdocs está en PATH):
+
+```bash
+npm run docs:serve
+npm run docs:build
+```
+
+Notas:
+
+- Puedes crear `mkdocs.local.yml` para overrides locales (p. ej., `site_url` y/o desactivar `redirects` en local). Ya está en `.gitignore`.
+- No commitees `site/` (salida de build) ni el venv `.venv/`.
+
 ## Notas de entorno
 
 - **DB de pruebas**: seguimos usando `.env.testing` como fuente única de configuración. En local el puerto es `5434`. En CI (GitHub Actions) el servicio expone `5432`.
