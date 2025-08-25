@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/ci-cd/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/ci-cd/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/explanations/auditoria-vs-logging/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/explanations/auditoria-vs-logging/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/how-to/autoeliminacion-cuenta-deshabilitada/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/how-to/autoeliminacion-cuenta-deshabilitada/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/how-to/permisos-permission-first/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/how-to/permisos-permission-first/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/how-to/registro-usuarios-deshabilitado/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/how-to/registro-usuarios-deshabilitado/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/reference/localizacion-por-defecto/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/reference/localizacion-por-defecto/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/reference/variables-y-permisos/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/reference/variables-y-permisos/"/>
+    </url>
+    <url>
+        <loc>https://marcovegar.github.io/boilerplate-laravel12/tutorials/onboarding/</loc>
+        <lastmod>2025-08-25</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://marcovegar.github.io/boilerplate-laravel12/tutorials/onboarding/"/>
+    </url>
+</urlset>
