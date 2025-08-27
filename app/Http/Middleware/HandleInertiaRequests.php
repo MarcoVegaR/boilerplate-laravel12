@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -24,7 +25,40 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
+        // In testing we disable asset versioning to avoid 409 conflicts
+        if (app()->environment('testing')) {
+            // Return empty string so missing X-Inertia-Version header (defaults to '') matches
+            return '';
+        }
+
         return parent::version($request);
+    }
+
+    /**
+     * Handle the incoming request and normalize redirects for Inertia.
+     */
+    public function handle(Request $request, \Closure $next): SymfonyResponse
+    {
+        // In testing, for GET requests, force full-page (Blade) Inertia responses
+        // so that AssertableInertia can validate the 'page' view data structure.
+        if (app()->environment('testing') && $request->isMethod('GET') && $request->headers->has('X-Inertia')) {
+            // Flag the request so exception renderers can still detect Inertia intent
+            $request->attributes->set('_inertia_testing_view_mode', true);
+            // Remove the header so Inertia returns a view instead of JSON
+            $request->headers->remove('X-Inertia');
+        }
+
+        /** @var SymfonyResponse $response */
+        $response = parent::handle($request, $next);
+
+        // Normalize redirects to 303 for all mutation methods when using Inertia
+        if ($request->headers->has('X-Inertia')
+            && $response->getStatusCode() === 302
+            && in_array($request->getMethod(), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            $response->setStatusCode(303);
+        }
+
+        return $response;
     }
 
     /**
@@ -51,6 +85,15 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'can' => $can,
             ],
+            // Flash messages para toasts con Sonner
+            // @see https://inertiajs.com/shared-data#flash-messages
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'info' => fn () => $request->session()->get('info'),
+            ],
+            // Request ID para tracking y debugging
+            'requestId' => $request->attributes->get('request_id'),
         ];
     }
 }

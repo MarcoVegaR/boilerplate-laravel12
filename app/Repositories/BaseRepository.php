@@ -1,0 +1,502 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repositories;
+
+use App\Contracts\Repositories\RepositoryInterface;
+use App\DTO\ListQuery;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Implementación base abstracta para repositorios con soporte completo
+ * para Index, operaciones masivas y utilidades de concurrencia.
+ *
+ * Proporciona hooks extensibles para personalizar comportamiento en
+ * repositorios concretos sin duplicar lógica común.
+ */
+abstract class BaseRepository implements RepositoryInterface
+{
+    /**
+     * Clase del modelo Eloquent que maneja este repositorio.
+     */
+    protected string $modelClass;
+
+    /**
+     * Crea un nuevo query builder base.
+     * Hook: Override para personalizar el builder inicial.
+     */
+    protected function builder(): Builder
+    {
+        return $this->modelClass::query();
+    }
+
+    /**
+     * Define columnas que pueden ser buscadas con el parámetro 'q'.
+     * Hook: Override para especificar columnas searchables.
+     *
+     * @return array<string> Nombres de columnas
+     */
+    protected function searchable(): array
+    {
+        return [];
+    }
+
+    /**
+     * Define columnas permitidas para ordenamiento.
+     * Hook: Override para whitelist de columnas de sort.
+     *
+     * @return array<string> Nombres de columnas permitidas
+     */
+    protected function allowedSorts(): array
+    {
+        return ['id', 'created_at', 'updated_at'];
+    }
+
+    /**
+     * Define ordenamiento por defecto cuando no se especifica sort válido.
+     * Hook: Override para cambiar sort por defecto.
+     *
+     * @return array{string, string} [columna, dirección]
+     */
+    protected function defaultSort(): array
+    {
+        return ['id', 'desc'];
+    }
+
+    /**
+     * Define mapeo de filtros personalizados.
+     * Hook: Override para agregar lógica de filtrado específica.
+     *
+     * @return array<string, callable> Mapa clave => función filtro
+     */
+    protected function filterMap(): array
+    {
+        return [];
+    }
+
+    /**
+     * Aplica relaciones eager loading y withCount al builder.
+     * Hook: Override para definir relaciones por defecto.
+     */
+    protected function withRelations(Builder $builder): Builder
+    {
+        return $builder;
+    }
+
+    // === MÉTODOS COMUNES IMPLEMENTADOS ===
+
+    /**
+     * Aplica búsqueda de texto en columnas searchable.
+     * Usa LOWER() para compatibilidad cross-DB.
+     */
+    protected function applySearch(Builder $builder, ListQuery $query): Builder
+    {
+        if (empty($query->q) || empty($this->searchable())) {
+            return $builder;
+        }
+
+        $searchTerm = strtolower($query->q);
+
+        return $builder->where(function (Builder $q) use ($searchTerm) {
+            foreach ($this->searchable() as $column) {
+                $q->orWhereRaw('LOWER('.$column.') LIKE ?', ["%{$searchTerm}%"]);
+            }
+        });
+    }
+
+    /**
+     * Aplica filtros basados en el filterMap y filtros estándar.
+     */
+    protected function applyFilters(Builder $builder, ListQuery $query): Builder
+    {
+        $filterMap = $this->filterMap();
+
+        foreach ($query->filters as $key => $value) {
+            // Filtro personalizado definido en filterMap
+            if (isset($filterMap[$key]) && is_callable($filterMap[$key])) {
+                $filterMap[$key]($builder, $value);
+
+                continue;
+            }
+
+            // Filtros estándar
+            $this->applyStandardFilter($builder, $key, $value);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * Aplica filtros estándar según convenciones de naming.
+     */
+    private function applyStandardFilter(Builder $builder, string $key, mixed $value): void
+    {
+        // Filtro LIKE (clave_like)
+        if (str_ends_with($key, '_like')) {
+            $column = str_replace('_like', '', $key);
+            $builder->whereRaw('LOWER('.$column.') LIKE ?', ['%'.strtolower($value).'%']);
+
+            return;
+        }
+
+        // Filtro BETWEEN (clave_between con from/to)
+        if (str_ends_with($key, '_between') && is_array($value)) {
+            $column = str_replace('_between', '', $key);
+            if (isset($value['from'])) {
+                $builder->where($column, '>=', $value['from']);
+            }
+            if (isset($value['to'])) {
+                $builder->where($column, '<=', $value['to']);
+            }
+
+            return;
+        }
+
+        // Filtro IN (clave_in con array)
+        if (str_ends_with($key, '_in') && is_array($value)) {
+            $column = str_replace('_in', '', $key);
+            $builder->whereIn($column, $value);
+
+            return;
+        }
+
+        // Filtro IS NULL/NOT NULL (clave_is con 'null'/'notnull')
+        if (str_ends_with($key, '_is')) {
+            $column = str_replace('_is', '', $key);
+            if ($value === 'null') {
+                $builder->whereNull($column);
+            } elseif ($value === 'notnull') {
+                $builder->whereNotNull($column);
+            }
+
+            return;
+        }
+
+        // Filtro de conteo de relaciones (relacion_count >= N)
+        if (str_ends_with($key, '_count')) {
+            $relation = str_replace('_count', '', $key);
+            $builder->has($relation, '>=', (int) $value);
+
+            return;
+        }
+
+        // Filtro equals por defecto
+        if (is_bool($value)) {
+            $builder->where($key, $value);
+        } else {
+            $builder->where($key, $value);
+        }
+    }
+
+    /**
+     * Aplica ordenamiento validando contra allowedSorts.
+     */
+    protected function applySort(Builder $builder, ?string $sort, ?string $dir): Builder
+    {
+        $allowedSorts = $this->allowedSorts();
+
+        if (! $sort || ! in_array($sort, $allowedSorts)) {
+            [$defaultSort, $defaultDir] = $this->defaultSort();
+
+            return $builder->orderBy($defaultSort, $defaultDir);
+        }
+
+        $direction = in_array($dir, ['asc', 'desc']) ? $dir : 'desc';
+
+        return $builder->orderBy($sort, $direction);
+    }
+
+    // === IMPLEMENTACIÓN DE REPOSITORYINTERFACE ===
+
+    public function paginate(ListQuery $query, array $with = [], array $withCount = []): LengthAwarePaginator
+    {
+        $builder = $this->builder()
+            ->with($with)
+            ->withCount($withCount);
+
+        $builder = $this->withRelations($builder);
+        $builder = $this->applySearch($builder, $query);
+        $builder = $this->applyFilters($builder, $query);
+        $builder = $this->applySort($builder, $query->sort, $query->dir);
+
+        return $builder->paginate($query->perPage, ['*'], 'page', $query->page);
+    }
+
+    public function all(array $columns = ['*']): Collection
+    {
+        return $this->builder()->get($columns);
+    }
+
+    public function paginateByIdsDesc(array $ids, int $perPage, array $with = [], array $withCount = []): LengthAwarePaginator
+    {
+        if (empty($ids)) {
+            return new LengthAwarePaginator([], 0, $perPage);
+        }
+
+        return $this->builder()
+            ->with($with)
+            ->withCount($withCount)
+            ->whereIn('id', $ids)
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
+    }
+
+    public function findById(int|string $id, array $with = []): ?Model
+    {
+        return $this->builder()
+            ->with($with)
+            ->where('id', $id)
+            ->first();
+    }
+
+    public function findOrFailById(int|string $id, array $with = []): Model
+    {
+        return $this->builder()
+            ->with($with)
+            ->where('id', $id)
+            ->firstOrFail();
+    }
+
+    public function findByUuid(string $uuid, array $with = []): ?Model
+    {
+        return $this->builder()
+            ->with($with)
+            ->where('uuid', $uuid)
+            ->first();
+    }
+
+    public function findOrFailByUuid(string $uuid, array $with = []): Model
+    {
+        return $this->builder()
+            ->with($with)
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+    }
+
+    public function existsById(int|string $id): bool
+    {
+        return $this->builder()->where('id', $id)->exists();
+    }
+
+    public function existsByUuid(string $uuid): bool
+    {
+        return $this->builder()->where('uuid', $uuid)->exists();
+    }
+
+    public function count(array $filters = []): int
+    {
+        $builder = $this->builder();
+
+        if (! empty($filters)) {
+            $query = new ListQuery(filters: $filters);
+            $builder = $this->applyFilters($builder, $query);
+        }
+
+        return $builder->count();
+    }
+
+    public function create(array $attributes): Model
+    {
+        return $this->builder()->create($attributes);
+    }
+
+    public function createMany(array $rows): Collection
+    {
+        $models = new Collection;
+
+        foreach ($rows as $attributes) {
+            $models->push($this->create($attributes));
+        }
+
+        return $models;
+    }
+
+    public function update(Model|int|string $modelOrId, array $attributes): Model
+    {
+        $model = $modelOrId instanceof Model
+            ? $modelOrId
+            : $this->findOrFailById($modelOrId);
+
+        $model->update($attributes);
+
+        return $model->fresh();
+    }
+
+    public function upsert(array $rows, array $uniqueBy, array $updateColumns): int
+    {
+        return $this->builder()->upsert($rows, $uniqueBy, $updateColumns);
+    }
+
+    public function delete(Model|int|string $modelOrId): bool
+    {
+        $model = $modelOrId instanceof Model
+            ? $modelOrId
+            : $this->findOrFailById($modelOrId);
+
+        return $model->delete();
+    }
+
+    public function forceDelete(Model|int|string $modelOrId): bool
+    {
+        $model = $modelOrId instanceof Model
+            ? $modelOrId
+            : $this->findOrFailById($modelOrId);
+
+        if (method_exists($model, 'forceDelete')) {
+            return $model->forceDelete();
+        }
+
+        return $model->delete();
+    }
+
+    public function restore(Model|int|string $modelOrId): bool
+    {
+        if ($modelOrId instanceof Model) {
+            $model = $modelOrId;
+        } else {
+            $model = $this->builder()->withTrashed()->where('id', $modelOrId)->firstOrFail();
+        }
+
+        if (method_exists($model, 'restore')) {
+            return $model->restore();
+        }
+
+        return false;
+    }
+
+    public function setActive(Model|int|string $modelOrId, bool $active): Model
+    {
+        return $this->update($modelOrId, ['active' => $active]);
+    }
+
+    // === OPERACIONES MASIVAS ===
+
+    public function bulkDeleteByIds(array $ids): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        $modelInstance = new $this->modelClass;
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
+            return $this->builder()->whereIn('id', $ids)->delete();
+        }
+
+        return $this->builder()->whereIn('id', $ids)->delete();
+    }
+
+    public function bulkForceDeleteByIds(array $ids): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        $modelInstance = new $this->modelClass;
+        if (method_exists($modelInstance, 'forceDelete')) {
+            return $this->builder()->whereIn('id', $ids)->forceDelete();
+        }
+
+        return $this->builder()->whereIn('id', $ids)->delete();
+    }
+
+    public function bulkRestoreByIds(array $ids): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        $modelInstance = new $this->modelClass;
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
+            return $this->builder()->onlyTrashed()->whereIn('id', $ids)->restore();
+        }
+
+        return 0;
+    }
+
+    public function bulkSetActiveByIds(array $ids, bool $active): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        return $this->builder()->whereIn('id', $ids)->update(['active' => $active]);
+    }
+
+    public function bulkDeleteByUuids(array $uuids): int
+    {
+        if (empty($uuids)) {
+            return 0;
+        }
+
+        return $this->builder()->whereIn('uuid', $uuids)->delete();
+    }
+
+    public function bulkForceDeleteByUuids(array $uuids): int
+    {
+        if (empty($uuids)) {
+            return 0;
+        }
+
+        $modelInstance = new $this->modelClass;
+        if (method_exists($modelInstance, 'forceDelete')) {
+            return $this->builder()->whereIn('uuid', $uuids)->forceDelete();
+        }
+
+        return $this->builder()->whereIn('uuid', $uuids)->delete();
+    }
+
+    public function bulkRestoreByUuids(array $uuids): int
+    {
+        if (empty($uuids)) {
+            return 0;
+        }
+
+        $modelInstance = new $this->modelClass;
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
+            return $this->builder()->onlyTrashed()->whereIn('uuid', $uuids)->restore();
+        }
+
+        return 0;
+    }
+
+    public function bulkSetActiveByUuids(array $uuids, bool $active): int
+    {
+        if (empty($uuids)) {
+            return 0;
+        }
+
+        return $this->builder()->whereIn('uuid', $uuids)->update(['active' => $active]);
+    }
+
+    // === CONCURRENCIA (PESSIMISTIC LOCK) ===
+
+    public function withPessimisticLockById(int|string $id, callable $callback): mixed
+    {
+        return DB::transaction(function () use ($id, $callback) {
+            $model = $this->builder()
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            return $callback($model);
+        });
+    }
+
+    public function withPessimisticLockByUuid(string $uuid, callable $callback): mixed
+    {
+        return DB::transaction(function () use ($uuid, $callback) {
+            $model = $this->builder()
+                ->where('uuid', $uuid)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            return $callback($model);
+        });
+    }
+}

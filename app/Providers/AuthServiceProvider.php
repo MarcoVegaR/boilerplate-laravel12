@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Providers;
+
+use App\Models\User;
+use App\Policies\RolePolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Role;
+
+/**
+ * Authorization Service Provider.
+ *
+ * Handles policy registration and global authorization rules.
+ *
+ * @author Laravel Boilerplate
+ */
+class AuthServiceProvider extends ServiceProvider
+{
+    /**
+     * The model to policy mappings for the application.
+     *
+     * @var array<class-string, class-string>
+     */
+    protected $policies = [
+        Role::class => RolePolicy::class,
+    ];
+
+    /**
+     * Register any authentication / authorization services.
+     */
+    public function boot(): void
+    {
+        // Register policies
+        $this->registerPolicies();
+
+        // Optional: Global super-admin bypass
+        // Uncomment the following if you want super-admin role to bypass all gates
+        /*
+        Gate::before(function (User $user, string $ability) {
+            // Super-admin bypasses all authorization checks
+            // Return true to allow, false to deny, null to fall through to normal checks
+            return $user->hasRole('super-admin') ? true : null;
+        });
+        */
+
+        // Alternative: Register policies programmatically
+        // This approach is useful when you have many models following a pattern
+        /*
+        Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(Permission::class, PermissionPolicy::class);
+        // ... more policies
+        */
+    }
+}

@@ -43,6 +43,15 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // App-specific expensive operations
+        RateLimiter::for('exports', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('bulk', function (Request $request) {
+            return Limit::perMinute(15)->by($request->user()?->id ?: $request->ip());
+        });
+
         // Audit login/logout events
         Event::listen(Login::class, function (Login $event) {
             /** @var \Illuminate\Contracts\Auth\Authenticatable $user */

@@ -40,6 +40,20 @@ nav:
       - Registro de usuarios deshabilitado (admin-only): how-to/registro-usuarios-deshabilitado.md
       - Autoeliminación de cuenta deshabilitada: how-to/autoeliminacion-cuenta-deshabilitada.md
       - DataTable Meta-Driven Columns: how-to/datatable-meta-driven-columns.md
+  - Backend:
+      - Repositories: backend/repositories.md
+      - Services: backend/services.md
+      - Controllers: backend/controllers.md
+      - Flash & Error Handling: backend/flash-and-errors.md
+      - Error Pages (Inertia): backend/errors.md
+      - Rate Limiting: backend/rate-limiting.md
+      - Logging & Context: backend/logging-context.md
+      - Policies: backend/policies.md
+      - Testing:
+          - Repositories: backend/testing-repositories.md
+          - Services: backend/testing-services.md
+      - Requests:
+          - BaseIndexRequest: backend/requests.md
   - Referencia:
       - Variables y permisos: reference/variables-y-permisos.md
       - Localización por defecto (ES): reference/localizacion-por-defecto.md
