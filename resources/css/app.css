@@ -2,6 +2,8 @@
 
 @plugin 'tailwindcss-animate';
 
+@import './theme.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
@@ -41,6 +43,16 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+
+    /* semantic status tokens */
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-error: var(--error);
+    --color-error-foreground: var(--error-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -151,7 +163,7 @@
     --muted-foreground: oklch(0.7122 0 0);
     --accent: oklch(0.3132 0 0);
     --accent-foreground: oklch(0.9851 0 0);
-    --destructive: oklch(0.3123 0.0852 29.7877);
+    --destructive: oklch(0.75 0.25 29);
     --destructive-foreground: oklch(0.9368 0.0045 34.3092);
     --border: oklch(0.2809 0 0);
     --input: oklch(0.2603 0 0);
@@ -247,6 +259,15 @@
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
     --color-ring: var(--ring);
+    /* semantic status tokens */
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-error: var(--error);
+    --color-error-foreground: var(--error-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive-foreground: var(--destructive-foreground);

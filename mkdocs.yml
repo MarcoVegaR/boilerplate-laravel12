@@ -39,9 +39,11 @@ nav:
       - Permisos (permission-first): how-to/permisos-permission-first.md
       - Registro de usuarios deshabilitado (admin-only): how-to/registro-usuarios-deshabilitado.md
       - Autoeliminación de cuenta deshabilitada: how-to/autoeliminacion-cuenta-deshabilitada.md
+      - DataTable Meta-Driven Columns: how-to/datatable-meta-driven-columns.md
   - Referencia:
       - Variables y permisos: reference/variables-y-permisos.md
       - Localización por defecto (ES): reference/localizacion-por-defecto.md
+      - DataTable API: reference/datatable-api.md
   - Explicaciones:
       - Auditoría vs logging: explanations/auditoria-vs-logging.md
   - CI/CD:
