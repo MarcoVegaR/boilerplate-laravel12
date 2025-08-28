@@ -119,7 +119,7 @@ class BaseServiceTest extends TestCase
         $with = ['relation'];
         $model = $this->createMockModel(['id' => $id]);
 
-        $this->mockRepo->shouldReceive('getById')
+        $this->mockRepo->shouldReceive('findById')
             ->once()
             ->with($id, $with)
             ->andReturn($model);
@@ -131,7 +131,7 @@ class BaseServiceTest extends TestCase
 
     public function test_get_by_id_returns_null_when_not_found(): void
     {
-        $this->mockRepo->shouldReceive('getById')
+        $this->mockRepo->shouldReceive('findById')
             ->once()
             ->andReturn(null);
 
@@ -145,7 +145,7 @@ class BaseServiceTest extends TestCase
         $id = 1;
         $model = $this->createMockModel(['id' => $id]);
 
-        $this->mockRepo->shouldReceive('getOrFailById')
+        $this->mockRepo->shouldReceive('findOrFailById')
             ->once()
             ->with($id, [])
             ->andReturn($model);
@@ -157,9 +157,9 @@ class BaseServiceTest extends TestCase
 
     public function test_get_or_fail_by_id_throws_exception_when_not_found(): void
     {
-        $this->mockRepo->shouldReceive('getOrFailById')
+        $this->mockRepo->shouldReceive('findOrFailById')
             ->once()
-            ->andThrow(new ModelNotFoundException);
+            ->andThrow(ModelNotFoundException::class);
 
         $this->expectException(ModelNotFoundException::class);
 
@@ -172,7 +172,7 @@ class BaseServiceTest extends TestCase
         $with = ['relation'];
         $model = $this->createMockModel(['uuid' => $uuid]);
 
-        $this->mockRepo->shouldReceive('getByUuid')
+        $this->mockRepo->shouldReceive('findByUuid')
             ->once()
             ->with($uuid, $with)
             ->andReturn($model);
@@ -184,9 +184,9 @@ class BaseServiceTest extends TestCase
 
     public function test_get_or_fail_by_uuid_throws_exception_when_not_found(): void
     {
-        $this->mockRepo->shouldReceive('getOrFailByUuid')
+        $this->mockRepo->shouldReceive('findOrFailByUuid')
             ->once()
-            ->andThrow(new ModelNotFoundException);
+            ->andThrow(ModelNotFoundException::class);
 
         $this->expectException(ModelNotFoundException::class);
 

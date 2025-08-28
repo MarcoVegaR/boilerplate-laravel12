@@ -16,8 +16,8 @@ interface ExporterInterface
     /**
      * Exporta datos usando streaming para evitar problemas de memoria
      *
-     * @param  iterable  $rows  Iterador de filas de datos
-     * @param  array  $columns  Columnas a incluir en la exportación
+     * @param  iterable<array<string, mixed>>  $rows  Iterador de filas de datos
+     * @param  array<string>  $columns  Columnas a incluir en la exportación
      */
     public function stream(iterable $rows, array $columns): StreamedResponse;
 }

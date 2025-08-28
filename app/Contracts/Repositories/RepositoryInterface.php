@@ -26,7 +26,7 @@ interface RepositoryInterface
      * @param  ListQuery  $query  Parámetros de consulta normalizados
      * @param  array<string>  $with  Relaciones a cargar eagerly
      * @param  array<string>  $withCount  Relaciones para contar
-     * @return LengthAwarePaginator<Model>
+     * @return LengthAwarePaginator<int, Model>
      */
     public function paginate(ListQuery $query, array $with = [], array $withCount = []): LengthAwarePaginator;
 
@@ -47,7 +47,7 @@ interface RepositoryInterface
      * @param  int  $perPage  Registros por página
      * @param  array<string>  $with  Relaciones a cargar eagerly
      * @param  array<string>  $withCount  Relaciones para contar
-     * @return LengthAwarePaginator<Model>
+     * @return LengthAwarePaginator<int, Model>
      */
     public function paginateByIdsDesc(array $ids, int $perPage, array $with = [], array $withCount = []): LengthAwarePaginator;
 

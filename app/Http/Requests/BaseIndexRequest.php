@@ -49,6 +49,8 @@ abstract class BaseIndexRequest extends FormRequest
      *
      * Combina las reglas base con las reglas específicas del módulo
      * definidas en filterRules().
+     *
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
@@ -88,8 +90,9 @@ abstract class BaseIndexRequest extends FormRequest
         }
 
         // Normalizar booleanos en filtros antes de validación
-        if ($this->has('filters') && is_array($this->input('filters'))) {
-            $data['filters'] = $this->normalizeBooleans($this->input('filters'));
+        $filters = $this->input('filters');
+        if ($this->has('filters') && is_array($filters)) {
+            $data['filters'] = $this->normalizeBooleans($filters);
         }
 
         if (! empty($data)) {
@@ -108,7 +111,7 @@ abstract class BaseIndexRequest extends FormRequest
         $validated = $this->validated();
 
         // Aplicar perPage por defecto si no se especifica
-        if (! isset($validated['perPage']) || $validated['perPage'] === null) {
+        if (! isset($validated['perPage']) || $validated['perPage'] == null) {
             $validated['perPage'] = $this->defaultPerPage();
         }
 
@@ -191,6 +194,9 @@ abstract class BaseIndexRequest extends FormRequest
      *
      * @return array<string, array> Reglas de validación para filtros
      */
+    /**
+     * @return array<string, mixed>
+     */
     protected function filterRules(): array
     {
         return [];
@@ -224,8 +230,8 @@ abstract class BaseIndexRequest extends FormRequest
      * Permite a cada FormRequest específico aplicar transformaciones
      * personalizadas después de la normalización base.
      *
-     * @param  array  $validated  Datos ya validados y normalizados
-     * @return array Datos con normalizaciones adicionales aplicadas
+     * @param  array<string, mixed>  $validated  Datos ya validados y normalizados
+     * @return array<string, mixed> Datos con normalizaciones adicionales aplicadas
      */
     protected function sanitize(array $validated): array
     {
@@ -236,6 +242,9 @@ abstract class BaseIndexRequest extends FormRequest
      * Normaliza valores booleanos en filtros.
      *
      * Convierte strings como 'true'/'false', '1'/'0' a booleanos reales.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
      */
     private function normalizeBooleans(array $filters): array
     {
@@ -254,6 +263,9 @@ abstract class BaseIndexRequest extends FormRequest
      * Normaliza rangos between para garantizar consistencia.
      *
      * Si 'from' > 'to', los intercambia para mantener la lógica correcta.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
      */
     private function normalizeRanges(array $filters): array
     {

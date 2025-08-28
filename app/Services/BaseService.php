@@ -66,36 +66,46 @@ abstract class BaseService implements ServiceInterface
 
     public function getById(int|string $id, array $with = []): ?Model
     {
-        return $this->repo->getById($id, $with);
+        return $this->repo->findById($id, $with);
     }
 
     public function getOrFailById(int|string $id, array $with = []): Model
     {
-        return $this->repo->getOrFailById($id, $with);
+        return $this->repo->findOrFailById($id, $with);
     }
 
     public function getByUuid(string $uuid, array $with = []): ?Model
     {
-        return $this->repo->getByUuid($uuid, $with);
+        return $this->repo->findByUuid($uuid, $with);
     }
 
     public function getOrFailByUuid(string $uuid, array $with = []): Model
     {
-        return $this->repo->getOrFailByUuid($uuid, $with);
+        return $this->repo->findOrFailByUuid($uuid, $with);
     }
 
     // --- Escritura ---
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     public function create(array $attributes): Model
     {
         return $this->transaction(fn () => $this->repo->create($attributes));
     }
 
+    /**
+     * @param  array<array<string, mixed>>  $rows
+     * @return Collection<int, Model>
+     */
     public function createMany(array $rows): Collection
     {
         return $this->transaction(fn () => $this->repo->createMany($rows));
     }
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     public function update(Model|int|string $modelOrId, array $attributes): Model
     {
         return $this->transaction(fn () => $this->repo->update($modelOrId, $attributes));
@@ -174,17 +184,18 @@ abstract class BaseService implements ServiceInterface
 
     // --- Concurrencia / Transacciones ---
 
-    public function transaction(callable $callback)
+    public function transaction(callable $callback): mixed
     {
+        /** @phpstan-ignore-next-line */
         return DB::transaction($callback);
     }
 
-    public function withPessimisticLockById(int|string $id, callable $callback)
+    public function withPessimisticLockById(int|string $id, callable $callback): mixed
     {
         return $this->repo->withPessimisticLockById($id, $callback);
     }
 
-    public function withPessimisticLockByUuid(string $uuid, callable $callback)
+    public function withPessimisticLockByUuid(string $uuid, callable $callback): mixed
     {
         return $this->repo->withPessimisticLockByUuid($uuid, $callback);
     }
@@ -193,6 +204,8 @@ abstract class BaseService implements ServiceInterface
 
     /**
      * Mapea un Model a array para 'rows'; por defecto attributesToArray()
+     *
+     * @return array<string, mixed>
      */
     protected function toRow(Model $model): array
     {
@@ -201,6 +214,8 @@ abstract class BaseService implements ServiceInterface
 
     /**
      * Columnas por defecto si no se pasan en export(); cada servicio concreto puede sobrescribir
+     *
+     * @return array<string>
      */
     protected function defaultExportColumns(): array
     {
@@ -228,6 +243,9 @@ abstract class BaseService implements ServiceInterface
 
     /**
      * Generador que itera sobre las filas de export de forma paginada
+     *
+     * @param  array<string>  $columns
+     * @return \Generator<array<string, mixed>>
      */
     protected function exportRows(ListQuery $query, array $columns): \Generator
     {
@@ -264,6 +282,9 @@ abstract class BaseService implements ServiceInterface
 
     /**
      * Convierte un paginator a formato ['rows', 'meta']
+     *
+     * @param  LengthAwarePaginator<int, Model>  $paginator
+     * @return array<string, mixed>
      */
     protected function makeListResult(LengthAwarePaginator $paginator): array
     {

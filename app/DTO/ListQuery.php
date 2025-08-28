@@ -15,13 +15,16 @@ use Illuminate\Http\Request;
  */
 readonly class ListQuery
 {
+    /**
+     * @param  array<string, mixed>|null  $filters
+     */
     public function __construct(
         public ?string $q = null,
         public int $page = 1,
         public int $perPage = 15,
         public ?string $sort = null,
         public ?string $dir = 'desc',
-        public array $filters = [],
+        public ?array $filters = null
     ) {}
 
     /**
@@ -61,6 +64,10 @@ readonly class ListQuery
      * - Arrays (para filtros IN)
      * - Rangos (between con from/to)
      * - Booleanos (true/false/1/0)
+     */
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
      */
     private static function normalizeFilters(array $filters): array
     {

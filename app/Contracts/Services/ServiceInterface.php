@@ -23,20 +23,20 @@ interface ServiceInterface
      * Devuelve ['rows' => array, 'meta' => array] a partir de un paginator del repositorio
      *
      * @param  ListQuery  $query  Query parameters for filtering, sorting, pagination
-     * @param  array  $with  Relations to eager load
-     * @param  array  $withCount  Relation counts to include
-     * @return array Shape: ['rows' => array, 'meta' => array]
+     * @param  array<string>  $with  Relations to eager load
+     * @param  array<string>  $withCount  Relation counts to include
+     * @return array<string, mixed> Shape: ['rows' => array, 'meta' => array]
      */
     public function list(ListQuery $query, array $with = [], array $withCount = []): array;
 
     /**
      * Igual que list(), pero para un subconjunto de IDs, siempre orden id DESC
      *
-     * @param  array  $ids  Array of IDs to filter by
+     * @param  array<int|string>  $ids  Array of IDs to filter by
      * @param  int  $perPage  Number of items per page
-     * @param  array  $with  Relations to eager load
-     * @param  array  $withCount  Relation counts to include
-     * @return array Shape: ['rows' => array, 'meta' => array]
+     * @param  array<string>  $with  Relations to eager load
+     * @param  array<string>  $withCount  Relation counts to include
+     * @return array<string, mixed> Shape: ['rows' => array, 'meta' => array]
      */
     public function listByIdsDesc(array $ids, int $perPage, array $with = [], array $withCount = []): array;
 
@@ -47,7 +47,7 @@ interface ServiceInterface
      *
      * @param  ListQuery  $query  Query parameters for export
      * @param  string  $format  Export format (csv|xlsx|pdf)
-     * @param  array|null  $columns  Columnas visibles (SSOT UI) o null -> usa defaultExportColumns()
+     * @param  array<string>|null  $columns  Columnas visibles (SSOT UI) o null -> usa defaultExportColumns()
      * @param  string|null  $filename  Nombre sugerido, o null -> usa defaultExportFilename()
      */
     public function export(ListQuery $query, string $format, ?array $columns = null, ?string $filename = null): StreamedResponse;
@@ -57,14 +57,14 @@ interface ServiceInterface
     /**
      * Get model by ID
      *
-     * @param  array  $with  Relations to eager load
+     * @param  array<string>  $with  Relations to eager load
      */
     public function getById(int|string $id, array $with = []): ?Model;
 
     /**
      * Get model by ID or fail with exception
      *
-     * @param  array  $with  Relations to eager load
+     * @param  array<string>  $with  Relations to eager load
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
@@ -73,14 +73,14 @@ interface ServiceInterface
     /**
      * Get model by UUID
      *
-     * @param  array  $with  Relations to eager load
+     * @param  array<string>  $with  Relations to eager load
      */
     public function getByUuid(string $uuid, array $with = []): ?Model;
 
     /**
      * Get model by UUID or fail with exception
      *
-     * @param  array  $with  Relations to eager load
+     * @param  array<string>  $with  Relations to eager load
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
@@ -90,24 +90,32 @@ interface ServiceInterface
 
     /**
      * Create new model
+     *
+     * @param  array<string, mixed>  $attributes
      */
     public function create(array $attributes): Model;
 
     /**
      * Create multiple models
      *
-     * @param  array  $rows  Array of attribute arrays
+     * @param  array<array<string, mixed>>  $rows  Array of attribute arrays
+     * @return Collection<int, Model>
      */
     public function createMany(array $rows): Collection;
 
     /**
      * Update model by instance or ID
+     *
+     * @param  array<string, mixed>  $attributes
      */
     public function update(Model|int|string $modelOrId, array $attributes): Model;
 
     /**
      * Upsert multiple rows
      *
+     * @param  array<array<string, mixed>>  $rows
+     * @param  array<string>  $uniqueBy
+     * @param  array<string>  $updateColumns
      * @return int Number of affected rows
      */
     public function upsert(array $rows, array $uniqueBy, array $updateColumns): int;
@@ -141,6 +149,7 @@ interface ServiceInterface
     /**
      * Bulk soft delete by IDs
      *
+     * @param  array<int|string>  $ids
      * @return int Number of affected rows
      */
     public function bulkDeleteByIds(array $ids): int;
@@ -148,6 +157,7 @@ interface ServiceInterface
     /**
      * Bulk force delete by IDs
      *
+     * @param  array<int|string>  $ids
      * @return int Number of affected rows
      */
     public function bulkForceDeleteByIds(array $ids): int;
@@ -155,6 +165,7 @@ interface ServiceInterface
     /**
      * Bulk restore by IDs
      *
+     * @param  array<int|string>  $ids
      * @return int Number of affected rows
      */
     public function bulkRestoreByIds(array $ids): int;
@@ -162,6 +173,7 @@ interface ServiceInterface
     /**
      * Bulk set active status by IDs
      *
+     * @param  array<int|string>  $ids
      * @return int Number of affected rows
      */
     public function bulkSetActiveByIds(array $ids, bool $active): int;
@@ -169,6 +181,7 @@ interface ServiceInterface
     /**
      * Bulk soft delete by UUIDs
      *
+     * @param  array<string>  $uuids
      * @return int Number of affected rows
      */
     public function bulkDeleteByUuids(array $uuids): int;
@@ -176,6 +189,7 @@ interface ServiceInterface
     /**
      * Bulk force delete by UUIDs
      *
+     * @param  array<string>  $uuids
      * @return int Number of affected rows
      */
     public function bulkForceDeleteByUuids(array $uuids): int;
@@ -183,6 +197,7 @@ interface ServiceInterface
     /**
      * Bulk restore by UUIDs
      *
+     * @param  array<string>  $uuids
      * @return int Number of affected rows
      */
     public function bulkRestoreByUuids(array $uuids): int;
@@ -190,6 +205,7 @@ interface ServiceInterface
     /**
      * Bulk set active status by UUIDs
      *
+     * @param  array<string>  $uuids
      * @return int Number of affected rows
      */
     public function bulkSetActiveByUuids(array $uuids, bool $active): int;
@@ -198,22 +214,16 @@ interface ServiceInterface
 
     /**
      * Ejecuta el callback dentro de una transacción de DB
-     *
-     * @return mixed
      */
-    public function transaction(callable $callback);
+    public function transaction(callable $callback): mixed;
 
     /**
      * Ejecuta el callback con lock pesimista sobre el registro por ID
-     *
-     * @return mixed
      */
-    public function withPessimisticLockById(int|string $id, callable $callback);
+    public function withPessimisticLockById(int|string $id, callable $callback): mixed;
 
     /**
      * Ejecuta el callback con lock pesimista sobre el registro por UUID
-     *
-     * @return mixed
      */
-    public function withPessimisticLockByUuid(string $uuid, callable $callback);
+    public function withPessimisticLockByUuid(string $uuid, callable $callback): mixed;
 }

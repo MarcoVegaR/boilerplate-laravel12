@@ -30,6 +30,8 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Crea un nuevo query builder base.
      * Hook: Override para personalizar el builder inicial.
+     *
+     * @return Builder<Model>
      */
     protected function builder(): Builder
     {
@@ -81,8 +83,11 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
-     * Aplica relaciones eager loading y withCount al builder.
-     * Hook: Override para definir relaciones por defecto.
+     * Hook para aplicar relaciones adicionales al builder.
+     * Override para cargar relaciones específicas por defecto.
+     *
+     * @param  Builder<Model>  $builder
+     * @return Builder<Model>
      */
     protected function withRelations(Builder $builder): Builder
     {
@@ -92,8 +97,10 @@ abstract class BaseRepository implements RepositoryInterface
     // === MÉTODOS COMUNES IMPLEMENTADOS ===
 
     /**
-     * Aplica búsqueda de texto en columnas searchable.
-     * Usa LOWER() para compatibilidad cross-DB.
+     * Aplica búsqueda global en columnas searchable.
+     *
+     * @param  Builder<Model>  $builder
+     * @return Builder<Model>
      */
     protected function applySearch(Builder $builder, ListQuery $query): Builder
     {
@@ -111,22 +118,28 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
-     * Aplica filtros basados en el filterMap y filtros estándar.
+     * Aplica filtros usando filterMap() y convenciones estándar.
+     *
+     * @param  Builder<Model>  $builder
+     * @return Builder<Model>
      */
     protected function applyFilters(Builder $builder, ListQuery $query): Builder
     {
         $filterMap = $this->filterMap();
 
-        foreach ($query->filters as $key => $value) {
-            // Filtro personalizado definido en filterMap
-            if (isset($filterMap[$key]) && is_callable($filterMap[$key])) {
-                $filterMap[$key]($builder, $value);
+        // Apply filters only if they exist and are not null
+        if ($query->filters !== null) {
+            foreach ($query->filters as $key => $value) {
+                // Filtro personalizado definido en filterMap
+                if (isset($filterMap[$key])) {
+                    $filterMap[$key]($builder, $value);
 
-                continue;
+                    continue;
+                }
+
+                // Filtros estándar
+                $this->applyStandardFilter($builder, $key, $value);
             }
-
-            // Filtros estándar
-            $this->applyStandardFilter($builder, $key, $value);
         }
 
         return $builder;
@@ -134,68 +147,76 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * Aplica filtros estándar según convenciones de naming.
+     *
+     * @param  Builder<Model>  $builder
      */
     private function applyStandardFilter(Builder $builder, string $key, mixed $value): void
     {
-        // Filtro LIKE (clave_like)
-        if (str_ends_with($key, '_like')) {
-            $column = str_replace('_like', '', $key);
-            $builder->whereRaw('LOWER('.$column.') LIKE ?', ['%'.strtolower($value).'%']);
+        // Aplicar filtros solo si hay valores no nulos
+        if ($value !== null) {
+            // Filtro LIKE (clave_like)
+            if (str_ends_with($key, '_like')) {
+                $column = str_replace('_like', '', $key);
+                $builder->whereRaw('LOWER('.$column.') LIKE ?', ['%'.strtolower($value).'%']);
 
-            return;
-        }
-
-        // Filtro BETWEEN (clave_between con from/to)
-        if (str_ends_with($key, '_between') && is_array($value)) {
-            $column = str_replace('_between', '', $key);
-            if (isset($value['from'])) {
-                $builder->where($column, '>=', $value['from']);
-            }
-            if (isset($value['to'])) {
-                $builder->where($column, '<=', $value['to']);
+                return;
             }
 
-            return;
-        }
+            // Filtro BETWEEN (clave_between con from/to)
+            if (str_ends_with($key, '_between') && is_array($value)) {
+                $column = str_replace('_between', '', $key);
+                if (isset($value['from'])) {
+                    $builder->where($column, '>=', $value['from']);
+                }
+                if (isset($value['to'])) {
+                    $builder->where($column, '<=', $value['to']);
+                }
 
-        // Filtro IN (clave_in con array)
-        if (str_ends_with($key, '_in') && is_array($value)) {
-            $column = str_replace('_in', '', $key);
-            $builder->whereIn($column, $value);
-
-            return;
-        }
-
-        // Filtro IS NULL/NOT NULL (clave_is con 'null'/'notnull')
-        if (str_ends_with($key, '_is')) {
-            $column = str_replace('_is', '', $key);
-            if ($value === 'null') {
-                $builder->whereNull($column);
-            } elseif ($value === 'notnull') {
-                $builder->whereNotNull($column);
+                return;
             }
 
-            return;
-        }
+            // Filtro IN (clave_in con array)
+            if (str_ends_with($key, '_in') && is_array($value)) {
+                $column = str_replace('_in', '', $key);
+                $builder->whereIn($column, $value);
 
-        // Filtro de conteo de relaciones (relacion_count >= N)
-        if (str_ends_with($key, '_count')) {
-            $relation = str_replace('_count', '', $key);
-            $builder->has($relation, '>=', (int) $value);
+                return;
+            }
 
-            return;
-        }
+            // Filtro IS NULL/NOT NULL (clave_is con 'null'/'notnull')
+            if (str_ends_with($key, '_is')) {
+                $column = str_replace('_is', '', $key);
+                if ($value === 'null') {
+                    $builder->whereNull($column);
+                } elseif ($value === 'notnull') {
+                    $builder->whereNotNull($column);
+                }
 
-        // Filtro equals por defecto
-        if (is_bool($value)) {
-            $builder->where($key, $value);
-        } else {
-            $builder->where($key, $value);
+                return;
+            }
+
+            // Filtro de conteo de relaciones (relacion_count >= N)
+            if (str_ends_with($key, '_count')) {
+                $relation = str_replace('_count', '', $key);
+                $builder->has($relation, '>=', (int) $value);
+
+                return;
+            }
+
+            // Filtro equals por defecto
+            if (is_bool($value)) {
+                $builder->where($key, $value);
+            } else {
+                $builder->where($key, $value);
+            }
         }
     }
 
     /**
      * Aplica ordenamiento validando contra allowedSorts.
+     *
+     * @param  Builder<Model>  $builder
+     * @return Builder<Model>
      */
     protected function applySort(Builder $builder, ?string $sort, ?string $dir): Builder
     {
@@ -214,6 +235,11 @@ abstract class BaseRepository implements RepositoryInterface
 
     // === IMPLEMENTACIÓN DE REPOSITORYINTERFACE ===
 
+    /**
+     * @param  array<string>  $with
+     * @param  array<string>  $withCount
+     * @return LengthAwarePaginator<int, Model>
+     */
     public function paginate(ListQuery $query, array $with = [], array $withCount = []): LengthAwarePaginator
     {
         $builder = $this->builder()
@@ -233,6 +259,12 @@ abstract class BaseRepository implements RepositoryInterface
         return $this->builder()->get($columns);
     }
 
+    /**
+     * @param  array<int|string>  $ids
+     * @param  array<string>  $with
+     * @param  array<string>  $withCount
+     * @return LengthAwarePaginator<int, Model>
+     */
     public function paginateByIdsDesc(array $ids, int $perPage, array $with = [], array $withCount = []): LengthAwarePaginator
     {
         if (empty($ids)) {
@@ -348,7 +380,7 @@ abstract class BaseRepository implements RepositoryInterface
             ? $modelOrId
             : $this->findOrFailById($modelOrId);
 
-        if (method_exists($model, 'forceDelete')) {
+        if (in_array(SoftDeletes::class, class_uses_recursive($model))) {
             return $model->forceDelete();
         }
 
@@ -360,10 +392,12 @@ abstract class BaseRepository implements RepositoryInterface
         if ($modelOrId instanceof Model) {
             $model = $modelOrId;
         } else {
-            $model = $this->builder()->withTrashed()->where('id', $modelOrId)->firstOrFail();
+            // Use newQuery to get a fresh builder that supports soft deletes
+            $modelInstance = new $this->modelClass;
+            $model = $modelInstance->newQuery()->withTrashed()->where('id', $modelOrId)->firstOrFail();
         }
 
-        if (method_exists($model, 'restore')) {
+        if (in_array(SoftDeletes::class, class_uses_recursive($model))) {
             return $model->restore();
         }
 
@@ -398,8 +432,8 @@ abstract class BaseRepository implements RepositoryInterface
         }
 
         $modelInstance = new $this->modelClass;
-        if (method_exists($modelInstance, 'forceDelete')) {
-            return $this->builder()->whereIn('id', $ids)->forceDelete();
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
+            return $modelInstance->newQuery()->whereIn('id', $ids)->forceDelete();
         }
 
         return $this->builder()->whereIn('id', $ids)->delete();
@@ -413,7 +447,7 @@ abstract class BaseRepository implements RepositoryInterface
 
         $modelInstance = new $this->modelClass;
         if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
-            return $this->builder()->onlyTrashed()->whereIn('id', $ids)->restore();
+            return $modelInstance->newQuery()->onlyTrashed()->whereIn('id', $ids)->restore();
         }
 
         return 0;
@@ -444,8 +478,8 @@ abstract class BaseRepository implements RepositoryInterface
         }
 
         $modelInstance = new $this->modelClass;
-        if (method_exists($modelInstance, 'forceDelete')) {
-            return $this->builder()->whereIn('uuid', $uuids)->forceDelete();
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
+            return $modelInstance->newQuery()->whereIn('uuid', $uuids)->forceDelete();
         }
 
         return $this->builder()->whereIn('uuid', $uuids)->delete();
@@ -459,7 +493,7 @@ abstract class BaseRepository implements RepositoryInterface
 
         $modelInstance = new $this->modelClass;
         if (in_array(SoftDeletes::class, class_uses_recursive($modelInstance))) {
-            return $this->builder()->onlyTrashed()->whereIn('uuid', $uuids)->restore();
+            return $modelInstance->newQuery()->onlyTrashed()->whereIn('uuid', $uuids)->restore();
         }
 
         return 0;

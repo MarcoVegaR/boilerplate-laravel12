@@ -154,8 +154,8 @@ trait HandlesIndexAndExport
         ]);
 
         $action = $request->string('action')->value();
-        $ids = $request->array('ids', []);
-        $uuids = $request->array('uuids', []);
+        $ids = $request->input('ids', []);
+        $uuids = $request->input('uuids', []);
         $active = $request->boolean('active', true);
 
         if (empty($ids) && empty($uuids)) {
@@ -169,6 +169,7 @@ trait HandlesIndexAndExport
                 'restore' => $this->service->bulkRestoreByIds($ids) + $this->service->bulkRestoreByUuids($uuids),
                 'forceDelete' => $this->service->bulkForceDeleteByIds($ids) + $this->service->bulkForceDeleteByUuids($uuids),
                 'setActive' => $this->service->bulkSetActiveByIds($ids, $active) + $this->service->bulkSetActiveByUuids($uuids, $active),
+                default => throw new \InvalidArgumentException("Invalid action: {$action}")
             };
 
             $actionMessages = [
