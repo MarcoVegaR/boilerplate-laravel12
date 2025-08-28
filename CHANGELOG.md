@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.0.1...v1.0.2) (2025-08-28)
+
+### Bug Fixes
+
+- **ci:** agregar archivos frontend faltantes para tests CI ([3cc2b17](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/3cc2b17a9a84b261aebb9d67051cc717d84b5510))
+- **ci:** corregir convención lowercase para páginas de error ([eaec9aa](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/eaec9aa97d5f4a33a70226b5e9da4f01ce35a3b2))
+
 ## [1.0.1](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.0.0...v1.0.1) (2025-08-28)
 
 ### Bug Fixes
