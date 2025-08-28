@@ -44,7 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     $request->headers->remove('X-Inertia');
                 }
 
-                return \Inertia\Inertia::render('Errors/403')->toResponse($request)->setStatusCode(403);
+                return \Inertia\Inertia::render('errors/403')->toResponse($request)->setStatusCode(403);
             }
 
             return null;
@@ -57,7 +57,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     $request->headers->remove('X-Inertia');
                 }
 
-                return \Inertia\Inertia::render('Errors/404')->toResponse($request)->setStatusCode(404);
+                return \Inertia\Inertia::render('errors/404')->toResponse($request)->setStatusCode(404);
             }
 
             return null;
@@ -70,7 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     $request->headers->remove('X-Inertia');
                 }
 
-                return \Inertia\Inertia::render('Errors/500')->toResponse($request)->setStatusCode(500);
+                return \Inertia\Inertia::render('errors/500')->toResponse($request)->setStatusCode(500);
             }
 
             return null;
@@ -79,7 +79,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Para errores 500 genéricos (no HttpException)
         $exceptions->renderable(function (\Throwable $e, \Illuminate\Http\Request $request) {
             if (($request->hasHeader('X-Inertia') || (bool) $request->attributes->get('_inertia_testing_view_mode')) && ! $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && app()->environment('production')) {
-                return \Inertia\Inertia::render('Errors/500')->toResponse($request)->setStatusCode(500);
+                return \Inertia\Inertia::render('errors/500')->toResponse($request)->setStatusCode(500);
             }
 
             return null;

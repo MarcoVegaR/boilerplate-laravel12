@@ -20,6 +20,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        // Configure Inertia testing to use lowercase pages directory
+        config()->set('inertia.testing.page_paths', [resource_path('js/pages')]);
+
         // Allow each test class to define its own routes via defineRoutes($router)
         $class = static::class;
         $appKey = $class.'|'.spl_object_hash(app());

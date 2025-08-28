@@ -37,13 +37,13 @@ class AppBootTest extends TestCase
     {
         $response = $this->withHeader('X-Inertia', 'true')->get('/nonexistent');
         $response->assertStatus(404);
-        $response->assertInertia(fn (Assert $page) => $page->component('Errors/404'));
+        $response->assertInertia(fn (Assert $page) => $page->component('errors/404'));
     }
 
     public function test_inertia_403_page_renders(): void
     {
         $response = $this->withHeader('X-Inertia', 'true')->get('/denied');
         $response->assertStatus(403);
-        $response->assertInertia(fn (Assert $page) => $page->component('Errors/403'));
+        $response->assertInertia(fn (Assert $page) => $page->component('errors/403'));
     }
 }

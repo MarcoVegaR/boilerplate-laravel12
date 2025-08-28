@@ -37,7 +37,7 @@ class InertiaErrorPagesTest extends TestCase
 
         $response->assertStatus(403);
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('Errors/403')
+            ->component('errors/403')
         );
     }
 
@@ -51,7 +51,7 @@ class InertiaErrorPagesTest extends TestCase
 
         $response->assertStatus(404);
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('Errors/404')
+            ->component('errors/404')
         );
     }
 
