@@ -204,7 +204,7 @@ public function index(ListRolesRequest $request): Response
     $result = $this->roleService->list(
         $query,
         with: ['permissions:id,name'],
-        withCount: ['users']
+        withCount: [] // Conteos derivados vía subselect sobre pivots en el repositorio
     );
 
     return Inertia::render('Roles/Index', [
@@ -244,8 +244,8 @@ Los exporters se registran en el container:
 ```php
 // En un ServiceProvider
 $this->app->bind('exporter.csv', CsvExporter::class);
-$this->app->bind('exporter.xlsx', ExcelExporter::class);
-$this->app->bind('exporter.pdf', PdfExporter::class);
+$this->app->bind('exporter.xlsx', XlsxExporter::class);
+$this->app->bind('exporter.json', JsonExporter::class);
 ```
 
 ## Transacciones y Concurrencia
@@ -373,8 +373,8 @@ class DomainServiceProvider extends ServiceProvider
 
         // Exporters
         $this->app->bind('exporter.csv', CsvExporter::class);
-        $this->app->bind('exporter.xlsx', ExcelExporter::class);
-        $this->app->bind('exporter.pdf', PdfExporter::class);
+        $this->app->bind('exporter.xlsx', XlsxExporter::class);
+        $this->app->bind('exporter.json', JsonExporter::class);
     }
 }
 ```

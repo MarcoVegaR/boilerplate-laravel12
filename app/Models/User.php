@@ -24,7 +24,7 @@ class User extends Authenticatable implements AuditableContract
     /**
      * Explicit guard for Spatie Permission.
      */
-    protected string $guard_name = 'web';
+    public string $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.

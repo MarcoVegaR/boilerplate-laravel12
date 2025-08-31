@@ -55,15 +55,17 @@ class RolesController extends Controller
 
     protected function withCount(): array
     {
-        return ['users_count']; // Relation counts
+        return []; // Los conteos pueden venir del repositorio (pivot/subselect)
     }
 
     protected function allowedExportFormats(): array
     {
-        return ['csv', 'xlsx', 'pdf'];
+        return ['csv', 'xlsx', 'json'];
     }
 }
 ```
+
+Nota: Para recursos donde ciertas relaciones pueden depender de configuración (p. ej., `Role::users` en Spatie Permission depende del `guard_name`), evita `withCount()` basado en relaciones y calcula conteos en el repositorio mediante subconsultas sobre tablas pivot.
 
 ### BaseIndexController (Alternativa)
 
@@ -125,14 +127,14 @@ GET /roles?q=admin&page=2&per_page=20&sort=name&dir=asc&filters[active]=true
 }
 ```
 
-#### 2. GET `/resource/export?format=csv|xlsx|pdf`
+#### 2. GET `/resource/export?format=csv|xlsx|json`
 
 Exporta recursos con el formato especificado.
 
 **Ejemplo:**
 
 ```http
-GET /roles/export?format=xlsx&q=admin&filters[active]=true
+GET /roles/export?format=json&q=admin&filters[active]=true
 ```
 
 **Respuesta:** `StreamedResponse` con headers de descarga apropiados.
@@ -343,12 +345,12 @@ class RolesController extends Controller
 
     protected function withCount(): array
     {
-        return ['users_count'];
+        return []; // Los conteos pueden venir del repositorio (pivot/subselect)
     }
 
     protected function allowedExportFormats(): array
     {
-        return ['csv', 'xlsx'];
+        return ['csv', 'xlsx', 'json'];
     }
 }
 ```

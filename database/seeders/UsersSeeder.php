@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UsersSeeder extends Seeder
 {
@@ -19,15 +21,30 @@ class UsersSeeder extends Seeder
 
         if (! $user) {
             $user = User::create([
-                'name' => 'Admin',
+                'name' => 'Test Admin',
                 'email' => $email,
-                // puedes usar el cast 'hashed' o Hash::make; ambos funcionan
                 'password' => Hash::make('12345678'),
             ]);
         }
 
-        if (! $user->hasRole('admin')) {
-            $user->assignRole('admin');
+        // Ensure admin role exists
+        $adminRole = Role::where('name', 'admin')->where('guard_name', 'web')->first();
+
+        if ($adminRole) {
+            // Clear any existing roles and assign admin role
+            DB::table('model_has_roles')
+                ->where('model_type', 'App\\Models\\User')
+                ->where('model_id', $user->id)
+                ->delete();
+
+            DB::table('model_has_roles')->insert([
+                'role_id' => $adminRole->id,
+                'model_type' => 'App\\Models\\User',
+                'model_id' => $user->id,
+            ]);
+
+            // Clear permission cache
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
     }
 }

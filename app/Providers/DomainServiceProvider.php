@@ -28,7 +28,7 @@ class DomainServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // No contextual bindings required; controllers inject concrete interfaces directly.
     }
 
     /**
@@ -51,6 +51,11 @@ class DomainServiceProvider extends ServiceProvider
         //     UserRepositoryInterface::class,
         //     UserRepository::class
         // );
+
+        $this->app->bind(
+            \App\Contracts\Repositories\RoleRepositoryInterface::class,
+            \App\Repositories\RoleRepository::class
+        );
     }
 
     /**
@@ -73,5 +78,23 @@ class DomainServiceProvider extends ServiceProvider
         //     RoleServiceInterface::class,
         //     RoleService::class
         // );
+
+        $this->app->bind(
+            \App\Contracts\Services\RoleServiceInterface::class,
+            \App\Services\RoleService::class
+        );
+
+        // Register RoleService with its dependencies
+        $this->app->bind(\App\Services\RoleService::class, function ($app) {
+            return new \App\Services\RoleService(
+                $app->make(\App\Contracts\Repositories\RoleRepositoryInterface::class),
+                $app
+            );
+        });
+
+        // Register exporters
+        $this->app->bind('exporter.csv', \App\Exports\CsvExporter::class);
+        $this->app->bind('exporter.xlsx', \App\Exports\XlsxExporter::class);
+        $this->app->bind('exporter.json', \App\Exports\JsonExporter::class);
     }
 }

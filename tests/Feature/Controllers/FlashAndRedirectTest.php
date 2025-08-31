@@ -6,11 +6,11 @@ use App\Contracts\Services\ServiceInterface;
 use App\DTO\ListQuery;
 use App\Exceptions\DomainActionException;
 use App\Http\Controllers\Concerns\HandlesIndexAndExport;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\BaseIndexRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -33,7 +33,10 @@ class FlashAndRedirectTest extends TestCase
         $this->user = User::factory()->create();
         $this->mockService = Mockery::mock(ServiceInterface::class);
 
-        // Registrar rutas de prueba
+        // Create permissions for testing
+        $this->createTestPermissions();
+
+        // Registrar rutas de prueba con nombres correctos
         Route::get('/test-flash', [TestFlashController::class, 'index'])->name('test.index')->middleware('web');
         Route::post('/test-flash/bulk', [TestFlashController::class, 'bulk'])->name('test.bulk')->middleware('web');
         Route::get('/test-flash/export', [TestFlashController::class, 'export'])->name('test.export')->middleware('web');
@@ -56,26 +59,81 @@ class FlashAndRedirectTest extends TestCase
         ]);
     }
 
+    private function createTestPermissions(): void
+    {
+        // Create test permissions using Spatie
+        $permissions = [
+            'roles.view',
+            'roles.export',
+            'roles.update',
+            'roles.delete',
+            'roles.restore',
+        ];
+
+        foreach ($permissions as $permission) {
+            \Spatie\Permission\Models\Permission::create(['name' => $permission, 'guard_name' => 'web']);
+        }
+    }
+
+    private function allowPolicy(string $ability): void
+    {
+        // Map abilities to permissions
+        $permissionMap = [
+            'viewAny' => 'roles.view',
+            'view' => 'roles.view',
+            'export' => 'roles.export',
+            'update' => 'roles.update',
+            'delete' => 'roles.delete',
+            'restore' => 'roles.restore',
+            'viewSelected' => 'roles.view',
+        ];
+
+        $permission = $permissionMap[$ability] ?? $ability;
+
+        // Give permission to the test user
+        if (! $this->user->hasPermissionTo($permission)) {
+            $this->user->givePermissionTo($permission);
+        }
+
+        // Define gate for the policy ability
+        Gate::define($ability, fn () => true);
+    }
+
+    private function denyPolicy(string $ability): void
+    {
+        // Map abilities to permissions
+        $permissionMap = [
+            'viewAny' => 'roles.view',
+            'view' => 'roles.view',
+            'export' => 'roles.export',
+            'update' => 'roles.update',
+            'delete' => 'roles.delete',
+            'restore' => 'roles.restore',
+            'viewSelected' => 'roles.view',
+        ];
+
+        $permission = $permissionMap[$ability] ?? $ability;
+
+        // Revoke permission from the test user
+        if ($this->user->hasPermissionTo($permission)) {
+            $this->user->revokePermissionTo($permission);
+        }
+
+        // Define gate to deny the policy ability
+        Gate::define($ability, fn () => false);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
     }
 
-    private function allowPolicy(string $ability): void
-    {
-        Gate::define($ability, fn () => true);
-    }
-
-    private function denyPolicy(string $ability): void
-    {
-        Gate::define($ability, fn () => false);
-    }
-
     /** @test */
     public function bulk_delete_with_success_redirects_with_flash_success(): void
     {
         $this->allowPolicy('update');
+        $this->allowPolicy('delete');
 
         $this->mockService->shouldReceive('bulkDeleteByIds')
             ->once()
@@ -99,7 +157,7 @@ class FlashAndRedirectTest extends TestCase
     }
 
     /** @test */
-    public function bulk_set_active_with_success_redirects_with_descriptive_message(): void
+    public function bulk_set_active_with_success_redirects_with_flash_success(): void
     {
         $this->allowPolicy('update');
 
@@ -128,6 +186,7 @@ class FlashAndRedirectTest extends TestCase
     public function bulk_restore_with_success_redirects_with_flash_success(): void
     {
         $this->allowPolicy('update');
+        $this->allowPolicy('restore');
 
         $this->mockService->shouldReceive('bulkRestoreByIds')
             ->once()
@@ -153,6 +212,7 @@ class FlashAndRedirectTest extends TestCase
     public function bulk_without_ids_redirects_with_flash_error(): void
     {
         $this->allowPolicy('update');
+        $this->allowPolicy('delete');
 
         $response = $this->actingAs($this->user)
             ->post('/test-flash/bulk', [
@@ -168,6 +228,7 @@ class FlashAndRedirectTest extends TestCase
     public function bulk_when_service_throws_domain_exception_redirects_with_flash_error(): void
     {
         $this->allowPolicy('update');
+        $this->allowPolicy('delete');
 
         $this->mockService->shouldReceive('bulkDeleteByIds')
             ->once()
@@ -188,6 +249,7 @@ class FlashAndRedirectTest extends TestCase
     public function bulk_when_service_throws_generic_exception_redirects_with_generic_error(): void
     {
         $this->allowPolicy('update');
+        $this->allowPolicy('delete');
 
         $this->mockService->shouldReceive('bulkDeleteByIds')
             ->once()
@@ -223,6 +285,9 @@ class FlashAndRedirectTest extends TestCase
     {
         $this->allowPolicy('export');
 
+        // Mock ListQuery creation from request
+        $mockDto = new ListQuery;
+
         $this->mockService->shouldReceive('export')
             ->once()
             ->with(Mockery::type(ListQuery::class), 'csv')
@@ -242,7 +307,7 @@ class FlashAndRedirectTest extends TestCase
 
         $this->mockService->shouldReceive('export')
             ->once()
-            ->with(Mockery::type(ListQuery::class), 'csv')
+            ->with(Mockery::type(ListQuery::class), 'xlsx')
             ->andThrow(new \Exception('File system error'));
 
         $response = $this->actingAs($this->user)
@@ -256,6 +321,8 @@ class FlashAndRedirectTest extends TestCase
     public function export_with_success_returns_streamed_response(): void
     {
         $this->allowPolicy('export');
+
+        $mockResponse = Mockery::mock(StreamedResponse::class);
 
         $streamedResponse = new StreamedResponse(
             function () {
@@ -332,14 +399,23 @@ class FlashAndRedirectTest extends TestCase
  */
 class TestFlashController extends Controller
 {
-    use HandlesIndexAndExport;
-    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+    use HandlesIndexAndExport, \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-    public function __construct(private ServiceInterface $service) {}
+    protected ServiceInterface $service;
+
+    public function __construct(ServiceInterface $service)
+    {
+        $this->service = $service;
+    }
+
+    protected function getService(): ServiceInterface
+    {
+        return $this->service;
+    }
 
     protected function policyModel(): string
     {
-        return User::class;
+        return \Spatie\Permission\Models\Role::class;
     }
 
     protected function view(): string
@@ -365,6 +441,40 @@ class TestFlashController extends Controller
     protected function indexRouteName(): string
     {
         return 'test.index';
+    }
+
+    protected function indexRequestClass(): string
+    {
+        return TestFlashIndexRequest::class;
+    }
+
+    protected function exportPermission(): string
+    {
+        // Override to use roles.export permission for consistency with test setup
+        return 'roles.export';
+    }
+
+    public function authorize($ability, $arguments = [])
+    {
+        // Override authorize method for bulk actions
+        if ($ability === 'bulk' && is_array($arguments) && count($arguments) >= 2) {
+            $action = $arguments[1]; // The action from bulk request
+            $permission = match ($action) {
+                'delete' => 'roles.delete',
+                'restore' => 'roles.restore',
+                'forceDelete' => 'roles.force-delete',
+                'setActive', 'update' => 'roles.update',
+                default => null,
+            };
+
+            if ($permission && ! auth()->user()->hasPermissionTo($permission)) {
+                abort(403);
+            }
+
+            return;
+        }
+
+        return parent::authorize($ability, $arguments);
     }
 
     // Override helper methods to use direct URLs for tests

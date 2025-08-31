@@ -14,9 +14,11 @@ import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Download, FileJson, FileSpreadsheet, FileText } from 'lucide-react';
 
 import { BulkActionBar } from './BulkActionBar';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
@@ -59,7 +61,9 @@ export interface DataTableProps<TData = unknown> {
     isLoading?: boolean;
     emptyState?: React.ReactNode;
     toolbar?: React.ReactNode;
-    onExportClick?: (table: Table<TData>) => void;
+    // Export functionality
+    canExport?: boolean;
+    onExportClick?: (format: string, table: Table<TData>) => void;
     onDeleteSelectedClick?: () => void;
     paginationMode?: PaginationMode;
     getRowId?: (originalRow: TData, index: number) => string;
@@ -68,6 +72,9 @@ export interface DataTableProps<TData = unknown> {
     enableGlobalFilter?: boolean;
     permissions?: Record<string, boolean>;
     className?: string;
+    // Density (row padding)
+    density?: 'comfortable' | 'compact';
+    onDensityChange?: (density: 'comfortable' | 'compact') => void;
 }
 
 const DEFAULT_PAGE_SIZES = [10, 25, 50, 100];
@@ -93,15 +100,18 @@ export function DataTable<TData>({
     isLoading = false,
     emptyState,
     toolbar,
+    canExport: enableExport = false,
     onExportClick,
     onDeleteSelectedClick,
-    paginationMode: _paginationMode = 'server',
+    paginationMode: _paginationMode = 'offset',
     getRowId,
-    enableRowSelection = true,
+    enableRowSelection = false,
     enableColumnVisibility = true,
     enableGlobalFilter = true,
     permissions = {},
     className,
+    density = 'comfortable',
+    onDensityChange,
 }: DataTableProps<TData>) {
     const pageCount = Math.ceil(rowCount / pageSize);
 
@@ -162,8 +172,12 @@ export function DataTable<TData>({
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     const selectedCount = selectedRows.length;
 
+    const cellPaddingClass = density === 'compact' ? 'p-2' : 'p-3';
+
+    const hasSelection = !!table.getColumn?.('select');
+
     // Extract permissions
-    const { canCreate: _canCreate, canEdit: _canEdit, canDelete: _canDelete, canExport, canBulkDelete } = permissions || {};
+    const { canCreate: _canCreate, canEdit: _canEdit, canDelete: _canDelete, canExport: _canExport, canBulkDelete } = permissions || {};
 
     // Column visibility options for menu
     const columnVisibilityOptions = React.useMemo(
@@ -187,33 +201,68 @@ export function DataTable<TData>({
         );
     }
 
-    if (data.length === 0) {
-        return (
-            <div className="flex h-32 items-center justify-center">
-                {emptyState || <div className="text-muted-foreground text-center">No hay datos disponibles</div>}
-            </div>
-        );
-    }
+    // Don't return early for empty data - show the full table with controls
 
     return (
         <div className={cn('space-y-4', className)}>
             {/* Toolbar */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
                 <TableToolbar
+                    className="min-w-0 flex-1"
                     globalFilter={globalFilter}
                     onGlobalFilterChange={enableGlobalFilter ? onGlobalFilterChange : undefined}
-                    onExportClick={canExport && onExportClick ? () => onExportClick(table) : undefined}
                 >
                     {toolbar}
                 </TableToolbar>
 
-                {enableColumnVisibility && (
-                    <ColumnVisibilityMenu
-                        columns={columnVisibilityOptions}
-                        columnVisibility={columnVisibility || {}}
-                        onColumnVisibilityChange={onColumnVisibilityChange || (() => {})}
-                    />
-                )}
+                <div className="flex items-center gap-2">
+                    {/* Density toggle fixed at right */}
+                    {onDensityChange && (
+                        <ToggleGroup type="single" value={density} onValueChange={(v) => v && onDensityChange(v as 'comfortable' | 'compact')}>
+                            <ToggleGroupItem value="comfortable" aria-label="Densidad cómoda" className="px-2 py-1 text-xs">
+                                Cómoda
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="compact" aria-label="Densidad compacta" className="px-2 py-1 text-xs">
+                                Compacta
+                            </ToggleGroupItem>
+                        </ToggleGroup>
+                    )}
+
+                    {/* Export dropdown */}
+                    {enableExport && onExportClick && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                    <Download className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                                    Exportar
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => onExportClick('csv', table)} className="flex cursor-pointer items-center gap-2">
+                                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                    Exportar como CSV
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onExportClick('xlsx', table)} className="flex cursor-pointer items-center gap-2">
+                                    <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                    Exportar como Excel
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onExportClick('json', table)} className="flex cursor-pointer items-center gap-2">
+                                    <FileJson className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                                    Exportar como JSON
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+
+                    {/* Column visibility */}
+                    {enableColumnVisibility && (
+                        <ColumnVisibilityMenu
+                            columns={columnVisibilityOptions}
+                            columnVisibility={columnVisibility || {}}
+                            onColumnVisibilityChange={onColumnVisibilityChange || (() => {})}
+                        />
+                    )}
+                </div>
             </div>
 
             {/* Bulk Action Bar */}
@@ -226,8 +275,8 @@ export function DataTable<TData>({
             )}
 
             {/* Table */}
-            <div className="rounded-md border">
-                <table className="w-full">
+            <div className="overflow-x-auto rounded-md border">
+                <table className="w-full min-w-[900px]">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id} className="border-b">
@@ -243,6 +292,15 @@ export function DataTable<TData>({
                                             className={cn(
                                                 'text-muted-foreground h-12 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0',
                                                 header.column.getCanHide() && !header.column.getIsVisible() && 'hidden',
+                                                header.column.id === 'select' &&
+                                                    'bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky left-0 z-10 w-[48px] border-r backdrop-blur-sm',
+                                                header.column.id === 'name' &&
+                                                    (hasSelection
+                                                        ? 'bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky left-[48px] z-10 border-r backdrop-blur-sm'
+                                                        : 'bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky left-0 z-10 border-r backdrop-blur-sm'),
+                                                header.column.id === 'actions' &&
+                                                    'bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky right-0 z-10 border-l text-right backdrop-blur-sm',
+                                                header.column.id === 'users_count' && 'text-right',
                                             )}
                                         >
                                             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -257,14 +315,34 @@ export function DataTable<TData>({
                             table.getRowModel().rows.map((row) => (
                                 <tr
                                     key={row.id}
-                                    className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
+                                    className="group hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
                                     data-state={row.getIsSelected() && 'selected'}
                                 >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="p-3 align-middle [&:has([role=checkbox])]:pr-0">
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </td>
-                                    ))}
+                                    {row.getVisibleCells().map((cell) => {
+                                        const isSelectCell = cell.column.id === 'select';
+                                        const isActionsCell = cell.column.id === 'actions';
+                                        const isNameCell = cell.column.id === 'name';
+                                        return (
+                                            <td
+                                                key={cell.id}
+                                                data-state={row.getIsSelected() ? 'selected' : undefined}
+                                                className={cn(
+                                                    cellPaddingClass,
+                                                    'align-middle [&:has([role=checkbox])]:pr-0',
+                                                    isSelectCell &&
+                                                        'bg-background/95 supports-[backdrop-filter]:bg-background/80 hover:bg-muted/50 data-[state=selected]:bg-muted sticky left-0 z-10 w-[48px] max-w-[48px] min-w-[48px] border-r backdrop-blur-sm',
+                                                    isNameCell &&
+                                                        (hasSelection
+                                                            ? 'bg-background/95 supports-[backdrop-filter]:bg-background/80 hover:bg-muted/50 data-[state=selected]:bg-muted sticky left-[48px] z-10 border-r backdrop-blur-sm'
+                                                            : 'bg-background/95 supports-[backdrop-filter]:bg-background/80 hover:bg-muted/50 data-[state=selected]:bg-muted sticky left-0 z-10 border-r backdrop-blur-sm'),
+                                                    isActionsCell &&
+                                                        'bg-background/95 supports-[backdrop-filter]:bg-background/80 hover:bg-muted/50 data-[state=selected]:bg-muted sticky right-0 z-10 border-l backdrop-blur-sm',
+                                                )}
+                                            >
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </td>
+                                        );
+                                    })}
                                 </tr>
                             ))
                         ) : (
@@ -296,8 +374,18 @@ export function DataTable<TData>({
                             </SelectContent>
                         </Select>
                     </div>
+                    <div className="text-muted-foreground flex items-center text-sm">
+                        {rowCount > 0 ? (
+                            <>
+                                Mostrando {Math.min(pageIndex * pageSize + 1, rowCount)} a {Math.min((pageIndex + 1) * pageSize, rowCount)} de{' '}
+                                {rowCount} registros
+                            </>
+                        ) : (
+                            'Sin registros'
+                        )}
+                    </div>
                     <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                        Página {pageIndex + 1} de {pageCount}
+                        Página {pageIndex + 1} de {Math.max(pageCount, 1)}
                     </div>
                     <div className="flex items-center space-x-2">
                         <Button variant="outline" className="hidden h-8 w-8 p-0 lg:flex" onClick={() => onPageChange(0)} disabled={pageIndex === 0}>

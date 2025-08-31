@@ -514,7 +514,7 @@ export default function Playground() {
                             canExport: true,
                             canBulkDelete: true,
                         }}
-                        onExportClick={(table) => {
+                        onExportClick={(_format, table) => {
                             // Demo: Export using column meta-driven export
                             exportVisibleAsCSV(table, 'usuarios-filtrados.csv');
                         }}

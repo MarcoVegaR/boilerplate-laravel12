@@ -60,7 +60,7 @@ abstract class BaseIndexRequest extends FormRequest
 
             // Paginación
             'page' => ['nullable', 'integer', 'min:1'],
-            'perPage' => ['nullable', 'integer', 'min:1', 'max:'.$this->maxPerPage()],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:'.$this->maxPerPage()],
 
             // Ordenamiento
             'sort' => ['nullable', 'string', Rule::in($this->allowedSorts())],
@@ -110,14 +110,14 @@ abstract class BaseIndexRequest extends FormRequest
     {
         $validated = $this->validated();
 
-        // Aplicar perPage por defecto si no se especifica
-        if (! isset($validated['perPage']) || $validated['perPage'] == null) {
-            $validated['perPage'] = $this->defaultPerPage();
+        // Aplicar per_page por defecto si no se especifica
+        if (! isset($validated['per_page']) || $validated['per_page'] == null) {
+            $validated['per_page'] = $this->defaultPerPage();
         }
 
-        // Limitar perPage a maxPerPage como defensa extra
-        if ($validated['perPage'] > $this->maxPerPage()) {
-            $validated['perPage'] = $this->maxPerPage();
+        // Limitar per_page a maxPerPage como defensa extra
+        if ($validated['per_page'] > $this->maxPerPage()) {
+            $validated['per_page'] = $this->maxPerPage();
         }
 
         // Asegurar que filters sea array
@@ -146,7 +146,7 @@ abstract class BaseIndexRequest extends FormRequest
         return new ListQuery(
             q: $this->input('q'),
             page: (int) $this->input('page', 1),
-            perPage: (int) $this->input('perPage', $this->defaultPerPage()),
+            perPage: (int) $this->input('per_page', $this->defaultPerPage()),
             sort: $this->input('sort'),
             dir: $this->input('dir', 'desc'),
             filters: (array) $this->input('filters', [])

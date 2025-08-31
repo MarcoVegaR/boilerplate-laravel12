@@ -270,7 +270,9 @@ abstract class BaseService implements ServiceInterface
 
                 // Filtrar solo las columnas solicitadas
                 if (! empty($columns)) {
-                    $row = array_intersect_key($row, array_flip($columns));
+                    // If columns is associative (has string keys), use keys, otherwise use values
+                    $columnKeys = array_is_list($columns) ? $columns : array_keys($columns);
+                    $row = array_intersect_key($row, array_flip($columnKeys));
                 }
 
                 yield $row;

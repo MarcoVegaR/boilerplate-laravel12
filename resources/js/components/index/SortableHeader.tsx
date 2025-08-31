@@ -15,7 +15,8 @@ export function SortableHeader({ children, sortDirection, onSort, className, dis
     const getSortIcon = () => {
         if (sortDirection === 'asc') return <ArrowUp className="ml-2 h-4 w-4" />;
         if (sortDirection === 'desc') return <ArrowDown className="ml-2 h-4 w-4" />;
-        return <ArrowUpDown className="ml-2 h-4 w-4" />;
+        // Hidden by default; visible on hover
+        return <ArrowUpDown className="ml-2 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />;
     };
 
     const getAriaSort = (): 'ascending' | 'descending' | 'none' => {
@@ -34,7 +35,7 @@ export function SortableHeader({ children, sortDirection, onSort, className, dis
 
     return (
         <th className={cn('px-3 py-3 text-left', className)} aria-sort={getAriaSort()}>
-            <Button variant="ghost" onClick={onSort} className="h-auto p-0 font-medium hover:bg-transparent">
+            <Button variant="ghost" onClick={onSort} className="group h-auto p-0 font-medium hover:bg-transparent">
                 <span className="flex items-center">
                     {children}
                     {getSortIcon()}

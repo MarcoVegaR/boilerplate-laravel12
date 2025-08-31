@@ -78,7 +78,7 @@ class BaseIndexRequestTest extends TestCase
         $data = [
             'q' => 'search term',
             'page' => 1,
-            'perPage' => 15,
+            'per_page' => 15,
             'sort' => 'name',
             'dir' => 'asc',
         ];
@@ -150,10 +150,10 @@ class BaseIndexRequestTest extends TestCase
     {
         // Valid cases
         $validCases = [
-            ['perPage' => 1],
-            ['perPage' => 25],
-            ['perPage' => 50], // Max for test class
-            ['perPage' => null],
+            ['per_page' => 1],
+            ['per_page' => 25],
+            ['per_page' => 50], // Max for test class
+            ['per_page' => null],
         ];
 
         foreach ($validCases as $data) {
@@ -163,10 +163,10 @@ class BaseIndexRequestTest extends TestCase
 
         // Invalid cases
         $invalidCases = [
-            ['perPage' => 0], // Too small
-            ['perPage' => 51], // Too large for test class
-            ['perPage' => -1], // Negative
-            ['perPage' => 'not_int'], // Not integer
+            ['per_page' => 0], // Too small
+            ['per_page' => 51], // Too large for test class
+            ['per_page' => -1], // Negative
+            ['per_page' => 'not_int'], // Not integer
         ];
 
         foreach ($invalidCases as $data) {
@@ -312,22 +312,22 @@ class BaseIndexRequestTest extends TestCase
 
         $request = $this->createFormRequest(TestIndexRequest::class, $data);
 
-        $this->assertEquals(10, $request->input('perPage')); // Default from test class
+        $this->assertEquals(10, $request->input('per_page')); // Default from test class
     }
 
     /** @test */
     public function limits_per_page_to_max_when_exceeded()
     {
         // This should fail validation since 100 > 50 (maxPerPage for test class)
-        $data = ['perPage' => 100];
+        $data = ['per_page' => 100];
 
         $validator = Validator::make($data, (new TestIndexRequest)->rules());
         $this->assertTrue($validator->fails());
 
-        // Test the normalization logic with a valid perPage that gets limited internally
-        $data = ['perPage' => 45]; // Valid, but we'll test internal limiting
+        // Test the normalization logic with a valid per_page that gets limited internally
+        $data = ['per_page' => 45]; // Valid, but we'll test internal limiting
         $request = $this->createFormRequest(TestIndexRequest::class, $data);
-        $this->assertEquals(45, $request->input('perPage'));
+        $this->assertEquals(45, $request->input('per_page'));
     }
 
     /** @test */
@@ -426,7 +426,7 @@ class BaseIndexRequestTest extends TestCase
         $data = [
             'q' => 'search',
             'page' => 2,
-            'perPage' => 20,
+            'per_page' => 20,
             'sort' => 'name',
             'dir' => 'asc',
             'filters' => [

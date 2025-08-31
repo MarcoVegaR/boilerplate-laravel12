@@ -124,6 +124,12 @@ export function Combobox({
   const [activeId, setActiveId] = useState<string | undefined>(undefined)
   const listRef = useRef<HTMLDivElement | null>(null)
 
+  // Debug helper
+  const debug = (...args: any[]) => {
+    // Only during development this will be useful; leave unconditional per request
+    console.debug(`[Combobox:${baseId}]`, ...args)
+  }
+
   const selectedValues = normalizeValue(value, multiple)
   const selectedOptions = useMemo(
     () => options.filter((o) => selectedValues.includes(o.value)),
@@ -159,15 +165,18 @@ export function Combobox({
   }, [open, query, options])
 
   const handleSelect = React.useCallback((value: string) => {
+    debug('handleSelect', { value, multiple, selectedValues })
     if (multiple) {
       const exists = selectedValues.includes(value)
       const next = exists
         ? selectedValues.filter((v) => v !== value)
         : [...selectedValues, value]
+      debug('onChange ->', next)
       onChange(next)
       if (exists && onRemoveChip) onRemoveChip(value)
       if ((closeOnSelect ?? false) === true) setOpen(false)
     } else {
+      debug('onChange ->', value)
       onChange(value)
       if (closeOnSelect ?? true) setOpen(false)
     }
@@ -176,10 +185,16 @@ export function Combobox({
   const handleCreate = () => {
     const newVal = query.trim()
     if (!newVal) return
+    debug('handleCreate', { newVal, multiple })
     if (multiple) {
-      if (!selectedValues.includes(newVal)) onChange([...selectedValues, newVal])
+      if (!selectedValues.includes(newVal)) {
+        const next = [...selectedValues, newVal]
+        debug('onChange ->', next)
+        onChange(next)
+      }
       if ((closeOnSelect ?? false) === true) setOpen(false)
     } else {
+      debug('onChange ->', newVal)
       onChange(newVal)
       if (closeOnSelect ?? true) setOpen(false)
     }
@@ -187,12 +202,15 @@ export function Combobox({
 
   const removeChip = (val: string) => {
     if (!multiple) return
+    debug('removeChip', val)
     const next = selectedValues.filter((v) => v !== val)
+    debug('onChange ->', next)
     onChange(next)
     onRemoveChip?.(val)
   }
 
   const clearAll = () => {
+    debug('clearAll')
     if (multiple) onChange([])
   }
 
@@ -314,6 +332,7 @@ export function Combobox({
 
   return (
     <Popover open={open} onOpenChange={(o) => {
+      debug('onOpenChange', o)
       setOpen(o)
       if (!o) setQuery("")
     }}>
@@ -333,6 +352,7 @@ export function Combobox({
             multiple && "min-h-9",
             className
           )}
+          onClick={() => debug('trigger click')}
         >
           <span className="flex min-w-0 grow items-center gap-1.5 text-left">
             {displayValue()}
@@ -347,7 +367,10 @@ export function Combobox({
             if (!search) return 1
             return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
           }}
-          onValueChange={setQuery}
+          onValueChange={(val) => {
+            debug('query change', val)
+            setQuery(val)
+          }}
         >
           <CommandInput
             placeholder={searchPlaceholder}
@@ -360,6 +383,7 @@ export function Combobox({
                 selectedValues.length > 0
               ) {
                 e.preventDefault()
+                debug('backspace/delete removes last chip', selectedValues[selectedValues.length - 1])
                 removeChip(selectedValues[selectedValues.length - 1])
               }
             }}
@@ -399,7 +423,10 @@ export function Combobox({
                       role="option"
                       aria-selected={selected}
                       disabled={opt.disabled}
-                      onSelect={() => handleSelect(opt.value)}
+                      onSelect={() => {
+                        debug('item onSelect', { value: opt.value, label: opt.label })
+                        handleSelect(opt.value)
+                      }}
                     >
                       <CheckIcon
                         className={cn(

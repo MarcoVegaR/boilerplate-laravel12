@@ -1,0 +1,174 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\Services\RoleServiceInterface;
+use App\DTO\ListQuery;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+/**
+ * Service implementation for Role operations.
+ *
+ * @author Laravel Boilerplate
+ */
+class RoleService extends BaseService implements RoleServiceInterface
+{
+    /**
+     * Transform a Role model to array representation.
+     *
+     * @return array<string, mixed>
+     */
+    protected function toRow(Model $model): array
+    {
+        /** @var \Spatie\Permission\Models\Role $role */
+        $role = $model;
+        // Map permissions for UI (keep full list for accurate exports)
+        $permissionsArray = $role->permissions->map(function (Model $permission): array {
+            return [
+                'id' => $permission->getAttribute('id'),
+                'name' => (string) $permission->getAttribute('name'),
+                'description' => $permission->getAttribute('description'),
+            ];
+        })->toArray();
+
+        // Build a human-friendly permissions details string for export (prefer description over name)
+        $permissionDescriptions = array_map(
+            fn (array $p) => (string) ($p['description'] ?? $p['name'] ?? ''),
+            $permissionsArray
+        );
+        $permissionsDetails = implode(', ', array_filter($permissionDescriptions, fn ($v) => $v !== ''));
+
+        // Fetch up to N user names via pivot to avoid guard-dependent relation
+        $usersLimit = 10;
+        $userNames = DB::table('model_has_roles as mhr')
+            ->join('users', 'users.id', '=', 'mhr.model_id')
+            ->where('mhr.role_id', $role->id)
+            ->where('mhr.model_type', User::class)
+            ->orderBy('users.name')
+            ->limit($usersLimit)
+            ->pluck('users.name')
+            ->toArray();
+
+        $usersCount = (int) ($role->users_count ?? 0);
+        $usersDetails = implode(', ', $userNames);
+        if ($usersCount > count($userNames)) {
+            $usersDetails .= ($usersDetails !== '' ? ' ' : '').'(+'.($usersCount - count($userNames)).' más)';
+        }
+
+        return [
+            'id' => $role->id,
+            'name' => $role->name,
+            'guard_name' => $role->guard_name,
+            'permissions' => $permissionsArray,
+            'permissions_count' => $role->permissions_count ?? $role->permissions->count(),
+            'users_count' => $usersCount,
+            // Extra fields for UI/tooltips
+            'users' => $userNames,
+            // Export-friendly detailed strings
+            'permissions_details' => $permissionsDetails,
+            'users_details' => $usersDetails,
+            'is_active' => (bool) ($role->getAttribute('is_active') ?? true),
+            'created_at' => $role->created_at,
+        ];
+    }
+
+    /**
+     * Get default columns for export.
+     *
+     * @return array<string, string> Key-value pairs where key is database field and value is display name
+     */
+    protected function defaultExportColumns(): array
+    {
+        return [
+            'id' => '#',
+            'name' => 'Nombre',
+            'guard_name' => 'Guard',
+            'permissions_details' => 'Permisos',
+            'users_details' => 'Usuarios',
+            'is_active' => 'Estado',
+            'created_at' => 'Creado',
+        ];
+    }
+
+    /**
+     * Get default filename for export.
+     */
+    protected function defaultExportFilename(string $format, ListQuery $query): string
+    {
+        return 'roles_export_'.date('Ymd_His').'.'.$format;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIndexExtras(): array
+    {
+        $stats = [
+            'total' => Role::count(),
+            // Count distinct roles that have at least one user (via pivot), avoids guard-based relation
+            'active' => DB::table('model_has_roles')
+                ->where('model_type', \App\Models\User::class)
+                ->distinct('role_id')
+                ->count('role_id'),
+            // Count distinct roles with permissions via pivot
+            'with_permissions' => DB::table('role_has_permissions')
+                ->distinct('role_id')
+                ->count('role_id'),
+        ];
+
+        $availablePermissions = Permission::select('id', 'name', 'description')
+            ->orderBy('name')
+            ->get()
+            ->map(function (Permission $permission): array {
+                return [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                    'description' => $permission->description ?? $permission->name,
+                ];
+            })
+            ->toArray();
+
+        return [
+            'stats' => $stats,
+            'availablePermissions' => $availablePermissions,
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function deleteSafely(Role $role): void
+    {
+        $guard = $role->guard_name;
+        $guards = array_keys(config('auth.guards', []));
+
+        // If the guard is configured, try the normal Eloquent delete first
+        if (in_array($guard, $guards, true)) {
+            try {
+                $role->delete();
+                // Clear permission cache after changes
+                app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+                return;
+            } catch (\Throwable $e) {
+                // Fallback to direct DB deletion below
+            }
+        }
+
+        // Fallback: manually remove pivot entries then delete the role by query
+        DB::transaction(function () use ($role) {
+            DB::table('role_has_permissions')->where('role_id', $role->id)->delete();
+            DB::table('model_has_roles')->where('role_id', $role->id)->delete();
+            DB::table('roles')->where('id', $role->id)->delete();
+        });
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+}

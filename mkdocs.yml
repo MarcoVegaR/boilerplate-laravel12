@@ -58,6 +58,7 @@ nav:
       - Variables y permisos: reference/variables-y-permisos.md
       - Localización por defecto (ES): reference/localizacion-por-defecto.md
       - DataTable API: reference/datatable-api.md
+      - Gestión de Roles: reference/roles-management.md
   - Explicaciones:
       - Auditoría vs logging: explanations/auditoria-vs-logging.md
   - CI/CD:

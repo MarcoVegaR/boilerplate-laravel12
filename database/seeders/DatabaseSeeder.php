@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
         // Seed the single default admin user
         $this->call(UsersSeeder::class);
 
+        // Seed test roles
+        $this->call(RolesTestSeeder::class);
+
         // Reset permission cache to avoid stale state in dev/CI
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }

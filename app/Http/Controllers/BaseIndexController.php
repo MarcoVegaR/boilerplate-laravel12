@@ -31,4 +31,9 @@ abstract class BaseIndexController extends Controller
      * @param  ServiceInterface  $service  Servicio que maneja la lógica de negocio
      */
     public function __construct(protected ServiceInterface $service) {}
+
+    /**
+     * Get the request class for index operations.
+     */
+    abstract protected function indexRequestClass(): string;
 }

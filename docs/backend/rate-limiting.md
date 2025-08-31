@@ -61,7 +61,7 @@ class UserController extends Controller
 
 - **10 requests por minuto**
 - **Justificación**: Las exportaciones suelen ser operaciones costosas de I/O y procesamiento
-- **Casos de uso**: CSV, Excel, PDF de grandes datasets
+- **Casos de uso**: CSV, XLSX y JSON de grandes datasets
 
 ### Operaciones Bulk (bulk)
 

@@ -102,17 +102,17 @@ abstract class BaseRepository implements RepositoryInterface
      * @param  Builder<Model>  $builder
      * @return Builder<Model>
      */
-    protected function applySearch(Builder $builder, ListQuery $query): Builder
+    protected function applySearch(Builder $builder, string $searchTerm): Builder
     {
-        if (empty($query->q) || empty($this->searchable())) {
+        if (empty($searchTerm) || empty($this->searchable())) {
             return $builder;
         }
 
-        $searchTerm = strtolower($query->q);
+        $searchLower = strtolower($searchTerm);
 
-        return $builder->where(function (Builder $q) use ($searchTerm) {
+        return $builder->where(function (Builder $q) use ($searchLower) {
             foreach ($this->searchable() as $column) {
-                $q->orWhereRaw('LOWER('.$column.') LIKE ?', ["%{$searchTerm}%"]);
+                $q->orWhereRaw('LOWER('.$column.') LIKE ?', ["%{$searchLower}%"]);
             }
         });
     }
@@ -157,7 +157,12 @@ abstract class BaseRepository implements RepositoryInterface
             // Filtro LIKE (clave_like)
             if (str_ends_with($key, '_like')) {
                 $column = str_replace('_like', '', $key);
-                $builder->whereRaw('LOWER('.$column.') LIKE ?', ['%'.strtolower($value).'%']);
+                // For numeric columns like 'id', cast to text for search
+                if ($column === 'id' || str_ends_with($column, '_id')) {
+                    $builder->whereRaw("CAST({$column} AS TEXT) LIKE ?", ['%'.$value.'%']);
+                } else {
+                    $builder->whereRaw("LOWER({$column}::text) LIKE ?", ['%'.strtolower($value).'%']);
+                }
 
                 return;
             }
@@ -238,17 +243,80 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * @param  array<string>  $with
      * @param  array<string>  $withCount
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int, \Illuminate\Database\Eloquent\Model>
+     */
+    public function list(ListQuery $query, array $with = [], array $withCount = []): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        // Add debug logging
+        \Log::info('BaseRepository::list called', [
+            'query_q' => $query->q,
+            'query_page' => $query->page,
+            'query_perPage' => $query->perPage,
+            'query_sort' => $query->sort,
+            'query_filters' => $query->filters,
+            'searchable_fields' => $this->searchable(),
+            'model_class' => $this->modelClass,
+        ]);
+
+        $builder = $this->builder();
+
+        // Apply eager loading
+        if (! empty($with)) {
+            $builder->with($with);
+        }
+
+        // Apply count relationships
+        if (! empty($withCount)) {
+            $builder->withCount($withCount);
+        }
+
+        // Apply custom relationship loading
+        $builder = $this->withRelations($builder);
+
+        // Apply global search
+        if (! empty($query->q)) {
+            $this->applySearch($builder, $query->q);
+        }
+
+        // Apply filters
+        $this->applyFilters($builder, $query);
+
+        $builder = $this->applySort($builder, $query->sort, $query->dir);
+
+        return $builder->paginate($query->perPage, ['*'], 'page', $query->page);
+    }
+
+    /**
+     * @param  array<string>  $with
+     * @param  array<string>  $withCount
      * @return LengthAwarePaginator<int, Model>
      */
     public function paginate(ListQuery $query, array $with = [], array $withCount = []): LengthAwarePaginator
     {
-        $builder = $this->builder()
-            ->with($with)
-            ->withCount($withCount);
+        $builder = $this->builder();
 
+        // Apply eager loading
+        if (! empty($with)) {
+            $builder->with($with);
+        }
+
+        // Apply count relationships
+        if (! empty($withCount)) {
+            $builder->withCount($withCount);
+        }
+
+        // Apply custom relationship loading
         $builder = $this->withRelations($builder);
-        $builder = $this->applySearch($builder, $query);
-        $builder = $this->applyFilters($builder, $query);
+
+        // Apply global search
+        if (! empty($query->q)) {
+            $this->applySearch($builder, $query->q);
+        }
+
+        // Apply filters
+        $this->applyFilters($builder, $query);
+
+        // Apply sorting
         $builder = $this->applySort($builder, $query->sort, $query->dir);
 
         return $builder->paginate($query->perPage, ['*'], 'page', $query->page);
@@ -271,9 +339,20 @@ abstract class BaseRepository implements RepositoryInterface
             return new LengthAwarePaginator([], 0, $perPage);
         }
 
-        return $this->builder()
-            ->with($with)
-            ->withCount($withCount)
+        $builder = $this->builder();
+
+        if (! empty($with)) {
+            $builder->with($with);
+        }
+
+        if (! empty($withCount)) {
+            $builder->withCount($withCount);
+        }
+
+        // Apply repository-specific relations and computed selections (e.g., users_count)
+        $builder = $this->withRelations($builder);
+
+        return $builder
             ->whereIn('id', $ids)
             ->orderBy('id', 'desc')
             ->paginate($perPage);

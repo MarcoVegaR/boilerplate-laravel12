@@ -105,11 +105,11 @@ Visita `/playground` para ver todas las funcionalidades:
 3. **Filtering**: Global search
 4. **Row Selection**: Checkbox selection
 5. **Delete Actions**: Single y bulk delete
-6. **Export**: CSV/JSON export (demo)
+6. **Export**: CSV/XLSX/JSON export (demo)
 
 ## Next Steps
 
 - [ ] Integrar con backend APIs reales
-- [ ] Completar export server-side para PDF
+- [ ] Completar export server-side con CSV, XLSX y JSON
 - [ ] Agregar más validaciones de permisos
 - [ ] Audit trail integration

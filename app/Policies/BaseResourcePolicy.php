@@ -59,10 +59,10 @@ abstract class BaseResourcePolicy
         if ($this->guardName() !== null) {
             // Note: Spatie automatically uses the guard from the user model,
             // but this serves as documentation that guard segmentation is expected
-            return $user->can($permission);
+            return $user->hasPermissionTo($permission);
         }
 
-        return $user->can($permission);
+        return $user->hasPermissionTo($permission);
     }
 
     /**
@@ -151,10 +151,45 @@ abstract class BaseResourcePolicy
      * Determine whether the user can export models.
      *
      * @param  User  $user  The user to authorize
+     * @param  mixed  $model  The model class or instance (optional for export)
      * @return bool True if authorized, false otherwise
      */
-    public function export(User $user): bool
+    public function export(User $user, $model = null): bool
     {
         return $this->can($user, 'export');
+    }
+
+    /**
+     * Determine whether the user can perform bulk operations.
+     *
+     * Note: When authorizing with authorize('bulk', [Model::class, $action]),
+     * Laravel uses the Model::class only to resolve the policy and passes
+     * the remaining arguments to this method. Therefore, this method receives
+     * only the $action argument in addition to the $user.
+     *
+     * @param  User  $user  The user to authorize
+     * @param  string  $action  The bulk action to perform
+     * @return bool True if authorized, false otherwise
+     */
+    public function bulk(User $user, string $action): bool
+    {
+        return match ($action) {
+            'delete' => $this->can($user, 'delete'),
+            'restore' => $this->can($user, 'restore'),
+            'forceDelete' => $this->can($user, 'forceDelete'),
+            'setActive', 'update' => $this->can($user, 'update'),
+            default => false,
+        };
+    }
+
+    /**
+     * Determine whether the user can view selected models.
+     *
+     * @param  User  $user  The user to authorize
+     * @return bool True if authorized, false otherwise
+     */
+    public function viewSelected(User $user): bool
+    {
+        return $this->can($user, 'view');
     }
 }
