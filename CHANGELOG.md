@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.0.2...v1.1.0) (2025-08-31)
+
+### Features
+
+- **roles:** usuarios popover y colores de iconos en export y filtros ([1ed569c](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/1ed569c15165dc257436f807c484597a4338cf36))
+
 ## [1.0.2](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.0.1...v1.0.2) (2025-08-28)
 
 ### Bug Fixes
