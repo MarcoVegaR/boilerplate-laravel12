@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.1.0...v1.2.0) (2025-09-01)
+
+### Features
+
+- implement bulk role activation/deactivation with improved UI ([c112807](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/c1128073a24563831791ecb5421a65b850b5de12))
+
 # [1.1.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.0.2...v1.1.0) (2025-08-31)
 
 ### Features
