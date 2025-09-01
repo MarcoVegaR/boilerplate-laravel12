@@ -30,6 +30,7 @@ class RolesControllerTest extends TestCase
         Permission::create(['name' => 'roles.update', 'guard_name' => 'web']);
         Permission::create(['name' => 'roles.delete', 'guard_name' => 'web']);
         Permission::create(['name' => 'roles.export', 'guard_name' => 'web']);
+        Permission::create(['name' => 'roles.setActive', 'guard_name' => 'web']);
 
         // Create user with permissions
         $this->user = User::factory()->create();
@@ -296,10 +297,10 @@ class RolesControllerTest extends TestCase
         $role1->givePermissionTo(['roles.view', 'roles.create']);
         $role2->givePermissionTo(['roles.view', 'roles.create', 'roles.update', 'roles.delete']);
 
-        // Act - Filter for roles with 3-5 permissions
-        $response = $this->actingAs($this->user)->get('/roles?filters[permissions_count_min]=3&filters[permissions_count_max]=5');
+        // Act - Filter for roles with 3-6 permissions
+        $response = $this->actingAs($this->user)->get('/roles?filters[permissions_count_min]=3&filters[permissions_count_max]=6');
 
-        // Assert - Should only return role2 and test_admin (which has all 5 permissions)
+        // Assert - Should only return role2 and test_admin (which has all 6 permissions)
         $response->assertOk();
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('roles/index')
@@ -590,5 +591,84 @@ class RolesControllerTest extends TestCase
         $response->assertSessionHas('success');
         $this->assertDatabaseMissing('roles', ['id' => $role1->id]);
         $this->assertDatabaseMissing('roles', ['id' => $role2->id]);
+    }
+
+    public function test_set_active_toggles_role_state_with_permission(): void
+    {
+        // Arrange: role initially inactive
+        $role = Role::create(['name' => 'can_toggle', 'guard_name' => 'web', 'is_active' => false]);
+
+        // Act: activate
+        $respActivate = $this->actingAs($this->user)->patch('/roles/'.$role->id.'/active', [
+            'active' => true,
+        ]);
+
+        // Assert
+        $respActivate->assertRedirect('/roles');
+        $respActivate->assertSessionHas('success');
+        $this->assertDatabaseHas('roles', ['id' => $role->id, 'is_active' => true]);
+
+        // Act: deactivate
+        $respDeactivate = $this->actingAs($this->user)->patch('/roles/'.$role->id.'/active', [
+            'active' => false,
+        ]);
+
+        // Assert
+        $respDeactivate->assertRedirect('/roles');
+        $respDeactivate->assertSessionHas('success');
+        $this->assertDatabaseHas('roles', ['id' => $role->id, 'is_active' => false]);
+    }
+
+    public function test_set_active_forbidden_without_permission(): void
+    {
+        // Arrange
+        $userWithoutPermission = User::factory()->create();
+        $role = Role::create(['name' => 'no_perm_role', 'guard_name' => 'web', 'is_active' => true]);
+
+        // Act
+        $response = $this->actingAs($userWithoutPermission)->patch('/roles/'.$role->id.'/active', [
+            'active' => false,
+        ]);
+
+        // Assert
+        $response->assertForbidden();
+        $this->assertDatabaseHas('roles', ['id' => $role->id, 'is_active' => true]);
+    }
+
+    public function test_set_active_blocks_deactivate_for_protected_role_when_configured(): void
+    {
+        // Arrange
+        config()->set('permissions.roles.activation.block_deactivate_protected', true);
+        config()->set('permissions.roles.protected', ['protected_role']);
+        $role = Role::create(['name' => 'protected_role', 'guard_name' => 'web', 'is_active' => true]);
+
+        // Act
+        $response = $this->actingAs($this->user)->from('/roles')->patch('/roles/'.$role->id.'/active', [
+            'active' => false,
+        ]);
+
+        // Assert
+        $response->assertRedirect('/roles');
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('roles', ['id' => $role->id, 'is_active' => true]);
+    }
+
+    public function test_set_active_blocks_deactivate_if_role_has_users_when_configured(): void
+    {
+        // Arrange
+        config()->set('permissions.roles.activation.block_deactivate_if_has_users', true);
+        $role = Role::create(['name' => 'role_with_users_block', 'guard_name' => 'web', 'is_active' => true]);
+        $anotherUser = User::factory()->create();
+        $anotherUser->assignRole($role);
+
+        // Act
+        $response = $this->actingAs($this->user)->from('/roles')->patch('/roles/'.$role->id.'/active', [
+            'active' => false,
+        ]);
+
+        // Assert
+        $response->assertRedirect('/roles');
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('roles', ['id' => $role->id, 'is_active' => true]);
     }
 }

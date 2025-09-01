@@ -112,11 +112,8 @@ class RoleService extends BaseService implements RoleServiceInterface
     {
         $stats = [
             'total' => Role::count(),
-            // Count distinct roles that have at least one user (via pivot), avoids guard-based relation
-            'active' => DB::table('model_has_roles')
-                ->where('model_type', \App\Models\User::class)
-                ->distinct('role_id')
-                ->count('role_id'),
+            // Count roles where is_active = true
+            'active' => Role::where('is_active', true)->count(),
             // Count distinct roles with permissions via pivot
             'with_permissions' => DB::table('role_has_permissions')
                 ->distinct('role_id')
@@ -170,5 +167,102 @@ class RoleService extends BaseService implements RoleServiceInterface
         });
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function bulkSetActiveByIds(array $ids, bool $active): int
+    {
+        return $this->bulkSetActiveForRoles('id', $ids, $active);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function bulkSetActiveByUuids(array $uuids, bool $active): int
+    {
+        return $this->bulkSetActiveForRoles('uuid', $uuids, $active);
+    }
+
+    /**
+     * Apply bulk activation/deactivation for roles identified by a key (id|uuid),
+     * enforcing business constraints and updating the correct column 'is_active'.
+     *
+     * @param  'id'|'uuid'  $key
+     * @param  array<int|string>  $values
+     */
+    protected function bulkSetActiveForRoles(string $key, array $values, bool $active): int
+    {
+        if (empty($values)) {
+            return 0;
+        }
+
+        return $this->transaction(function () use ($key, $values, $active): int {
+            // Load minimal fields needed to evaluate rules and state changes
+            $query = Role::query()->select('id', 'uuid', 'name', 'is_active');
+            if ($key === 'id') {
+                $query->whereIn('id', $values);
+            } else {
+                $query->whereIn('uuid', $values);
+            }
+
+            /** @var \Illuminate\Support\Collection<int, Role> $roles */
+            $roles = $query->get();
+            if ($roles->isEmpty()) {
+                return 0;
+            }
+
+            // Start from roles whose state would actually change
+            $candidates = $roles->filter(function (Role $role) use ($active) {
+                $current = (bool) ($role->getAttribute('is_active') ?? true);
+
+                return $current !== $active;
+            });
+
+            if ($candidates->isEmpty()) {
+                return 0;
+            }
+
+            // If deactivating, apply constraints (protected roles, roles with users)
+            if ($active === false) {
+                $protected = (array) config('permissions.roles.protected', []);
+                $blockProtected = (bool) data_get(config('permissions.roles'), 'activation.block_deactivate_protected', true);
+                if ($blockProtected) {
+                    $candidates = $candidates->reject(function (Role $role) use ($protected) {
+                        return in_array($role->name, $protected, true);
+                    });
+                }
+
+                $blockIfHasUsers = (bool) data_get(config('permissions.roles'), 'activation.block_deactivate_if_has_users', false);
+                if ($blockIfHasUsers && $candidates->isNotEmpty()) {
+                    $candidateIds = $candidates->pluck('id')->all();
+
+                    $hasUsersIds = DB::table('model_has_roles')
+                        ->select('role_id')
+                        ->whereIn('role_id', $candidateIds)
+                        ->where('model_type', User::class)
+                        ->distinct()
+                        ->pluck('role_id')
+                        ->all();
+
+                    if (! empty($hasUsersIds)) {
+                        $candidates = $candidates->reject(function (Role $role) use ($hasUsersIds) {
+                            return in_array($role->id, $hasUsersIds, true);
+                        });
+                    }
+                }
+            }
+
+            $idsToUpdate = $candidates->pluck('id')->all();
+            if (empty($idsToUpdate)) {
+                return 0;
+            }
+
+            // Update the correct activation column for roles
+            return DB::table('roles')
+                ->whereIn('id', $idsToUpdate)
+                ->update(['is_active' => $active]);
+        });
     }
 }

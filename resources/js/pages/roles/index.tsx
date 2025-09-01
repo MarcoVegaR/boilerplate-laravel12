@@ -143,8 +143,10 @@ export default function RolesIndex() {
     });
     // Avoid triggering a partial reload on first mount (prevents reading page.component before it's ready)
     const didMountRef = React.useRef(false);
-    // Bulk delete confirmation state
+    // Bulk action confirmation states
     const [deleteConfirm, setDeleteConfirm] = React.useState<{ show: boolean; count: number }>({ show: false, count: 0 });
+    const [activateConfirm, setActivateConfirm] = React.useState<{ show: boolean; count: number }>({ show: false, count: 0 });
+    const [deactivateConfirm, setDeactivateConfirm] = React.useState<{ show: boolean; count: number }>({ show: false, count: 0 });
 
     // Show flash messages
     React.useEffect(() => {
@@ -291,6 +293,30 @@ export default function RolesIndex() {
         setDeleteConfirm({ show: true, count: selectedIds.length });
     }, [rowSelection, rows]);
 
+    // Handle bulk activate
+    const handleBulkActivate = React.useCallback(() => {
+        const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+
+        if (selectedIds.length === 0) {
+            toast.warning('No hay filas seleccionadas');
+            return;
+        }
+
+        setActivateConfirm({ show: true, count: selectedIds.length });
+    }, [rowSelection, rows]);
+
+    // Handle bulk deactivate
+    const handleBulkDeactivate = React.useCallback(() => {
+        const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+
+        if (selectedIds.length === 0) {
+            toast.warning('No hay filas seleccionadas');
+            return;
+        }
+
+        setDeactivateConfirm({ show: true, count: selectedIds.length });
+    }, [rowSelection, rows]);
+
     // Update URL and reload when state changes (skip first mount)
     React.useEffect(() => {
         if (!didMountRef.current) {
@@ -314,6 +340,8 @@ export default function RolesIndex() {
         canDelete: auth?.can?.['roles.delete'] || false,
         canExport: auth?.can?.['roles.export'] || false,
         canBulkDelete: auth?.can?.['roles.delete'] || false,
+        canSetActive: auth?.can?.['roles.setActive'] || false,
+        canBulkSetActive: auth?.can?.['roles.setActive'] || false,
     };
 
     return (
@@ -429,6 +457,8 @@ export default function RolesIndex() {
                                     onRowSelectionChange={setRowSelection}
                                     permissions={permissions}
                                     onDeleteSelectedClick={handleBulkDelete}
+                                    onActivateSelectedClick={handleBulkActivate}
+                                    onDeactivateSelectedClick={handleBulkDeactivate}
                                     toolbar={
                                         <RoleFilters value={filters} onChange={handleFiltersChange} availablePermissions={availablePermissions} />
                                     }
@@ -441,7 +471,7 @@ export default function RolesIndex() {
                                 />
                             </div>
                         </div>
-                        {/* Bulk Delete Confirmation Dialog */}
+                        {/* Bulk Action Confirmation Dialogs */}
                         <ConfirmAlert
                             open={deleteConfirm.show}
                             onOpenChange={(open) => {
@@ -468,6 +498,64 @@ export default function RolesIndex() {
                                     );
                                 });
                                 setDeleteConfirm({ show: false, count: 0 });
+                            }}
+                        />
+
+                        <ConfirmAlert
+                            open={activateConfirm.show}
+                            onOpenChange={(open) => {
+                                if (!open) setActivateConfirm({ show: false, count: 0 });
+                            }}
+                            title="Activar Roles Seleccionados"
+                            description={`¿Está seguro de activar ${activateConfirm.count} rol(es)?`}
+                            confirmLabel="Activar"
+                            onConfirm={async () => {
+                                const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+                                await new Promise<void>((resolve, reject) => {
+                                    router.post(
+                                        '/roles/bulk',
+                                        { action: 'setActive', ids: selectedIds, active: true },
+                                        {
+                                            preserveState: false,
+                                            preserveScroll: true,
+                                            onSuccess: () => {
+                                                setRowSelection({});
+                                                resolve();
+                                            },
+                                            onError: () => reject(new Error('bulk_activate_failed')),
+                                        },
+                                    );
+                                });
+                                setActivateConfirm({ show: false, count: 0 });
+                            }}
+                        />
+
+                        <ConfirmAlert
+                            open={deactivateConfirm.show}
+                            onOpenChange={(open) => {
+                                if (!open) setDeactivateConfirm({ show: false, count: 0 });
+                            }}
+                            title="Desactivar Roles Seleccionados"
+                            description={`¿Está seguro de desactivar ${deactivateConfirm.count} rol(es)?`}
+                            confirmLabel="Desactivar"
+                            onConfirm={async () => {
+                                const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+                                await new Promise<void>((resolve, reject) => {
+                                    router.post(
+                                        '/roles/bulk',
+                                        { action: 'setActive', ids: selectedIds, active: false },
+                                        {
+                                            preserveState: false,
+                                            preserveScroll: true,
+                                            onSuccess: () => {
+                                                setRowSelection({});
+                                                resolve();
+                                            },
+                                            onError: () => reject(new Error('bulk_deactivate_failed')),
+                                        },
+                                    );
+                                });
+                                setDeactivateConfirm({ show: false, count: 0 });
                             }}
                         />
                     </div>

@@ -15,7 +15,7 @@ import { Link, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Edit, Eye, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Edit, Eye, MoreHorizontal, Power, Trash2 } from 'lucide-react';
 import React from 'react';
 
 export type TRole = {
@@ -32,6 +32,7 @@ export type TRole = {
 
 function RoleActionsCell({ role }: { role: TRole }) {
     const [open, setOpen] = React.useState(false);
+    const [openToggle, setOpenToggle] = React.useState(false);
 
     return (
         <>
@@ -56,6 +57,19 @@ function RoleActionsCell({ role }: { role: TRole }) {
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onSelect={() => {
+                            setTimeout(() => setOpenToggle(true), 100);
+                        }}
+                        className={
+                            role.is_active
+                                ? 'text-amber-600 focus:text-amber-700 dark:text-amber-400 dark:focus:text-amber-300'
+                                : 'text-emerald-600 focus:text-emerald-700 dark:text-emerald-400 dark:focus:text-emerald-300'
+                        }
+                    >
+                        <Power className="mr-2 h-4 w-4" />
+                        {role.is_active ? 'Desactivar' : 'Activar'}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onSelect={() => {
@@ -92,6 +106,32 @@ function RoleActionsCell({ role }: { role: TRole }) {
                     error: 'No se pudo eliminar el rol',
                 }}
             />
+            <ConfirmAlert
+                open={openToggle}
+                onOpenChange={setOpenToggle}
+                title={role.is_active ? 'Desactivar Rol' : 'Activar Rol'}
+                description={`¿Está seguro de ${role.is_active ? 'desactivar' : 'activar'} el rol "${role.name}"?`}
+                confirmLabel={role.is_active ? 'Desactivar' : 'Activar'}
+                onConfirm={async () => {
+                    await new Promise<void>((resolve, reject) => {
+                        router.patch(
+                            `/roles/${role.id}/active`,
+                            { active: !role.is_active },
+                            {
+                                preserveState: false,
+                                preserveScroll: true,
+                                onSuccess: () => resolve(),
+                                onError: () => reject(new Error('set_active_failed')),
+                            },
+                        );
+                    });
+                }}
+                toastMessages={{
+                    loading: `${role.is_active ? 'Desactivando' : 'Activando'} "${role.name}"…`,
+                    success: role.is_active ? 'Rol desactivado' : 'Rol activado',
+                    error: 'No se pudo cambiar el estado del rol',
+                }}
+            />
         </>
     );
 }
@@ -112,104 +152,14 @@ export const columns: ColumnDef<TRole>[] = [
             exportable: true,
         },
         enableSorting: true,
-        cell: ({ row, getValue }) => {
+        cell: ({ getValue }) => {
             const name = String(getValue() ?? '');
-            const isActive = row.original.is_active;
             return (
-                <div className="flex min-w-0 items-center gap-2">
-                    <span
-                        className={'h-2 w-2 shrink-0 rounded-full ' + (isActive ? 'bg-emerald-500' : 'bg-gray-400')}
-                        aria-label={isActive ? 'Activo' : 'Inactivo'}
-                        title={isActive ? 'Activo' : 'Inactivo'}
-                    />
-                    <span className="truncate" title={name}>
+                <div className="min-w-0">
+                    <span className="truncate font-medium" title={name}>
                         {name}
                     </span>
                 </div>
-            );
-        },
-    },
-    {
-        accessorKey: 'guard_name',
-        header: 'Guard',
-        meta: {
-            exportable: true,
-        },
-        enableSorting: true,
-    },
-    {
-        accessorKey: 'permissions',
-        header: 'Permisos',
-        meta: {
-            exportable: true,
-        },
-        enableSorting: false,
-        cell: ({ row }) => {
-            const permissions = row.original.permissions || [];
-            const count = row.original.permissions_count || 0;
-            const allNames: string[] = permissions.map((perm) =>
-                typeof perm === 'object' && perm?.description
-                    ? String(perm.description)
-                    : typeof perm === 'object' && perm?.name
-                      ? String(perm.name)
-                      : String(perm),
-            );
-
-            if (count === 0) {
-                return <span className="text-muted-foreground">Sin permisos</span>;
-            }
-
-            // Show first 2 permissions and a count badge if more
-            const displayPerms = permissions.slice(0, 2);
-            const remaining = Math.max(0, count - displayPerms.length);
-
-            return (
-                <TooltipProvider>
-                    <div className="flex max-w-[520px] flex-wrap items-center gap-1 overflow-hidden">
-                        {displayPerms.map((perm, idx) => {
-                            // Use description if available, fallback to name
-                            const permDisplay =
-                                typeof perm === 'object' && perm?.description
-                                    ? String(perm.description)
-                                    : typeof perm === 'object' && perm?.name
-                                      ? String(perm.name)
-                                      : String(perm);
-                            return (
-                                <Tooltip key={`perm-${row.original.id}-${idx}`}>
-                                    <TooltipTrigger asChild>
-                                        <Badge variant="secondary" className="max-w-[180px] truncate text-xs">
-                                            {permDisplay}
-                                        </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent>{permDisplay}</TooltipContent>
-                                </Tooltip>
-                            );
-                        })}
-                        {remaining > 0 && (
-                            <Popover>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <PopoverTrigger asChild>
-                                            <Badge key={`more-${row.original.id}`} variant="outline" className="cursor-pointer text-xs">
-                                                +{remaining}
-                                            </Badge>
-                                        </PopoverTrigger>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Ver permisos restantes</TooltipContent>
-                                </Tooltip>
-                                <PopoverContent className="w-80">
-                                    <div className="flex max-h-64 flex-wrap gap-1 overflow-auto">
-                                        {allNames.map((name, i) => (
-                                            <Badge key={`all-${row.original.id}-${i}`} variant="secondary" className="text-xs">
-                                                {name}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        )}
-                    </div>
-                </TooltipProvider>
             );
         },
     },
@@ -225,51 +175,47 @@ export const columns: ColumnDef<TRole>[] = [
             const users = (row.original.users || []) as string[];
 
             if (count === 0) {
-                return <span className="text-muted-foreground">Sin usuarios</span>;
+                return (
+                    <div className="flex items-center justify-center">
+                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                            0
+                        </Badge>
+                    </div>
+                );
             }
-
-            const displayUsers = users.slice(0, 2);
-            const remaining = Math.max(0, count - displayUsers.length);
 
             return (
                 <TooltipProvider>
-                    <div className="flex flex-wrap items-center justify-center gap-1">
-                        {displayUsers.map((name, idx) => (
-                            <Tooltip key={`user-${row.original.id}-${idx}`}>
-                                <TooltipTrigger asChild>
-                                    <Badge variant="secondary" className="max-w-[180px] truncate text-xs">
-                                        {name}
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>{name}</TooltipContent>
-                            </Tooltip>
-                        ))}
-                        {remaining > 0 && (
+                    <div className="flex items-center justify-center">
+                        {users.length > 0 ? (
                             <Popover>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <PopoverTrigger asChild>
-                                            <Badge key={`more-users-${row.original.id}`} variant="outline" className="cursor-pointer text-xs">
-                                                +{remaining}
+                                            <Badge variant="secondary" className="cursor-pointer font-medium">
+                                                {count}
                                             </Badge>
                                         </PopoverTrigger>
                                     </TooltipTrigger>
-                                    <TooltipContent>Ver usuarios restantes</TooltipContent>
+                                    <TooltipContent>Ver usuarios asignados</TooltipContent>
                                 </Tooltip>
                                 <PopoverContent className="w-80">
-                                    <div className="flex max-h-64 flex-wrap gap-1 overflow-auto">
-                                        {users.length > 0 ? (
-                                            users.map((name, i) => (
-                                                <Badge key={`all-users-${row.original.id}-${i}`} variant="secondary" className="text-xs">
+                                    <div className="space-y-2">
+                                        <h4 className="text-sm font-medium">Usuarios asignados ({count})</h4>
+                                        <div className="flex max-h-64 flex-wrap gap-1 overflow-auto">
+                                            {users.map((name, i) => (
+                                                <Badge key={`user-${row.original.id}-${i}`} variant="outline" className="text-xs">
                                                     {name}
                                                 </Badge>
-                                            ))
-                                        ) : (
-                                            <span className="text-muted-foreground text-sm">Sin usuarios</span>
-                                        )}
+                                            ))}
+                                        </div>
                                     </div>
                                 </PopoverContent>
                             </Popover>
+                        ) : (
+                            <Badge variant="secondary" className="font-medium">
+                                {count}
+                            </Badge>
                         )}
                     </div>
                 </TooltipProvider>
@@ -277,17 +223,81 @@ export const columns: ColumnDef<TRole>[] = [
         },
     },
     {
-        accessorKey: 'is_active',
-        header: 'Estado',
+        accessorKey: 'permissions_count',
+        header: 'Permisos',
+        meta: {
+            exportable: true,
+        },
+        enableSorting: true,
+        cell: ({ row, getValue }) => {
+            const count = getValue() as number;
+            const permissions = row.original.permissions || [];
+            const allNames: string[] = permissions.map((perm) =>
+                typeof perm === 'object' && perm?.description
+                    ? String(perm.description)
+                    : typeof perm === 'object' && perm?.name
+                      ? String(perm.name)
+                      : String(perm),
+            );
+
+            if (count === 0) {
+                return (
+                    <div className="flex items-center justify-center">
+                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                            0
+                        </Badge>
+                    </div>
+                );
+            }
+
+            return (
+                <TooltipProvider>
+                    <div className="flex items-center justify-center">
+                        <Popover>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <PopoverTrigger asChild>
+                                        <Badge variant="secondary" className="cursor-pointer font-medium">
+                                            {count}
+                                        </Badge>
+                                    </PopoverTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>Ver permisos asignados</TooltipContent>
+                            </Tooltip>
+                            <PopoverContent className="w-80">
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-medium">Permisos asignados ({count})</h4>
+                                    <div className="flex max-h-64 flex-wrap gap-1 overflow-auto">
+                                        {allNames.length > 0 ? (
+                                            allNames.map((name, i) => (
+                                                <Badge key={`perm-${row.original.id}-${i}`} variant="outline" className="text-xs">
+                                                    {name}
+                                                </Badge>
+                                            ))
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">Sin permisos detallados</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </TooltipProvider>
+            );
+        },
+    },
+    {
+        accessorKey: 'guard_name',
+        header: 'Guard',
         meta: {
             exportable: true,
         },
         enableSorting: true,
         cell: ({ getValue }) => {
-            const isActive = getValue() as boolean;
+            const guard = String(getValue() ?? 'web');
             return (
-                <Badge variant={isActive ? 'default' : 'destructive'} className="font-medium">
-                    {isActive ? 'Activo' : 'Inactivo'}
+                <Badge variant="outline" className="font-mono text-xs">
+                    {guard}
                 </Badge>
             );
         },
@@ -307,20 +317,44 @@ export const columns: ColumnDef<TRole>[] = [
             const relative = formatDistanceToNow(d, { locale: es, addSuffix: true });
             return (
                 <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <span className="whitespace-nowrap" title={full}>
-                                {short}
-                            </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <div className="flex flex-col gap-0.5">
-                                <span>{full}</span>
-                                <span className="text-muted-foreground">{relative}</span>
-                            </div>
-                        </TooltipContent>
-                    </Tooltip>
+                    <div className="text-center">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className="text-sm whitespace-nowrap" title={full}>
+                                    {short}
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="flex flex-col gap-0.5">
+                                    <span>{full}</span>
+                                    <span className="text-muted-foreground">{relative}</span>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
                 </TooltipProvider>
+            );
+        },
+    },
+    {
+        accessorKey: 'is_active',
+        header: 'Estado',
+        meta: {
+            exportable: true,
+        },
+        enableSorting: true,
+        cell: ({ getValue }) => {
+            const isActive = getValue() as boolean;
+            return (
+                <div className="flex items-center gap-2">
+                    <span
+                        className={'h-2 w-2 shrink-0 rounded-full ' + (isActive ? 'bg-emerald-500' : 'bg-red-400')}
+                        aria-label={isActive ? 'Activo' : 'Inactivo'}
+                    />
+                    <Badge variant={isActive ? 'default' : 'destructive'} className="font-medium">
+                        {isActive ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                </div>
             );
         },
     },

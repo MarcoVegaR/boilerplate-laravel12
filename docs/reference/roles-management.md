@@ -18,9 +18,18 @@ El sistema de gestión de roles proporciona una interfaz completa para administr
 
 ### Visualización de Datos
 
-- **Columna de Permisos**: Muestra los nombres de permisos asignados como badges
-    - Primeros 2 permisos visibles como badges individuales
-    - Badge adicional mostrando "+N" para permisos adicionales
+- **Tabla Optimizada**: Diseño UX mejorado con reordenamiento inteligente de columnas
+    - Flujo de lectura optimizado: ID → Nombre → Usuarios → Permisos → Guard → Creado → Estado → Acciones
+    - Alturas de fila consistentes y alineación mejorada
+- **Columna de Permisos**: Muestra conteo con popover detallado
+    - Conteo numérico centrado para fácil escaneo
+    - Popover clickeable con lista completa de permisos
+- **Columna de Usuarios**: Conteo con detalles en popover
+    - Badge con número de usuarios asignados
+    - Popover con lista de nombres de usuarios
+- **Columna de Estado**: Indicador visual claro
+    - Punto de color + badge de texto
+    - Posicionado antes de acciones para mejor contexto
 - **Paginación Mejorada**:
     - Selector de filas por página funcional
     - Muestra "Mostrando X a Y de Z registros"
@@ -30,7 +39,10 @@ El sistema de gestión de roles proporciona una interfaz completa para administr
 
 - **Estado Vacío Inteligente**: Los controles de búsqueda y filtros permanecen visibles cuando no hay resultados
 - **Exportación de Datos**: Soporte para CSV, XLSX y JSON
-- **Operaciones en Lote**: Eliminación múltiple de roles seleccionados
+- **Operaciones en Lote**:
+    - Eliminación múltiple de roles seleccionados
+    - Activación/desactivación masiva de roles
+    - Validaciones inteligentes para evitar operaciones redundantes
 
 ## Implementación Backend
 
@@ -146,6 +158,25 @@ class RolesController extends BaseIndexController
     protected function allowedExportFormats(): array
     {
         return ['csv', 'xlsx', 'json'];
+    }
+
+    public function bulk(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $action = $request->input('action');
+
+        if ($action === 'delete') {
+            $this->authorize('bulk', [Role::class, 'delete']);
+            // Manejo de eliminación masiva con DeleteBulkRolesRequest
+        }
+
+        if ($action === 'setActive') {
+            $this->authorize('bulk', [Role::class, 'setActive']);
+            // Manejo de activación/desactivación masiva con ActivateBulkRolesRequest
+            $validatedRequest = ActivateBulkRolesRequest::createFrom($request);
+            // Validación y procesamiento de roles actualizables
+        }
+
+        return parent::bulk($request);
     }
 }
 ```
@@ -292,6 +323,20 @@ Las eliminaciones (individuales y en lote) se validan en `FormRequest` dedicados
     - Opcional: requerir que el rol esté inactivo antes de eliminar (`permissions.roles.deletion.require_inactive`).
     - Opcional: bloquear si el rol tiene permisos, salvo que `force=true` (`permissions.roles.deletion.block_if_has_permissions`).
     - Salvaguarda crítica: impedir eliminar el último rol que otorgue todos los permisos críticos definidos (`permissions.roles.deletion.critical_permissions`).
+
+#### Validaciones de activación/desactivación masiva
+
+Las operaciones de activación/desactivación masiva utilizan `ActivateBulkRolesRequest`:
+
+- **Validaciones aplicadas**:
+    - No permitir cambiar estado de roles protegidos
+    - Evitar operaciones redundantes (roles ya en el estado solicitado)
+    - No desactivar roles con usuarios activos asignados
+    - Autorización requerida con permiso `roles.setActive`
+- **Retroalimentación inteligente**:
+    - Mensajes contextuales sobre roles actualizados vs omitidos
+    - Conteo preciso de operaciones exitosas
+    - Alertas cuando no se realizan cambios
 
 Configuración por defecto en `config/permissions/roles.php`:
 

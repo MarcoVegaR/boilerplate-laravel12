@@ -11,6 +11,8 @@ return [
         'roles.restore',
         'roles.forceDelete',
         'roles.export',
+        // Independent permission to activate/deactivate roles
+        'roles.setActive',
     ],
     'descriptions' => [
         'roles.view' => 'Ver roles',
@@ -20,12 +22,14 @@ return [
         'roles.restore' => 'Restaurar roles',
         'roles.forceDelete' => 'Eliminar permanentemente roles',
         'roles.export' => 'Exportar roles',
+        // Description for the independent activation permission
+        'roles.setActive' => 'Activar/desactivar roles',
     ],
     // Configuración de roles para validaciones de eliminación
     'roles' => [
         // Lista de nombres de roles que no pueden eliminarse
         'protected' => [
-            // 'admin', 'owner'
+            'admin',
         ],
         'deletion' => [
             // Si está en true, bloquear eliminación cuando el rol tenga permisos asignados
@@ -41,6 +45,13 @@ return [
                 'roles.delete',
                 'roles.export',
             ],
+        ],
+        // Configuración de activación/inactivación de roles
+        'activation' => [
+            // Bloquear desactivación si el rol tiene usuarios asignados
+            'block_deactivate_if_has_users' => true,
+            // Bloquear desactivación de roles protegidos
+            'block_deactivate_protected' => true,
         ],
     ],
 ];

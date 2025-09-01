@@ -1,18 +1,29 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Download, Trash2, X } from 'lucide-react';
+import { Download, Power, PowerOff, Trash2, X } from 'lucide-react';
 import * as React from 'react';
 
 export interface BulkActionBarProps {
     selectedCount: number;
     onDeleteSelected?: () => void;
+    onActivateSelected?: () => void;
+    onDeactivateSelected?: () => void;
     onExportSelected?: () => void;
     onClearSelection?: () => void;
     className?: string;
     actions?: React.ReactNode;
 }
 
-export function BulkActionBar({ selectedCount, onDeleteSelected, onExportSelected, onClearSelection, className, actions }: BulkActionBarProps) {
+export function BulkActionBar({
+    selectedCount,
+    onDeleteSelected,
+    onActivateSelected,
+    onDeactivateSelected,
+    onExportSelected,
+    onClearSelection,
+    className,
+    actions,
+}: BulkActionBarProps) {
     if (selectedCount === 0) {
         return null;
     }
@@ -25,6 +36,30 @@ export function BulkActionBar({ selectedCount, onDeleteSelected, onExportSelecte
                 </span>
 
                 <div className="flex items-center gap-1">
+                    {onActivateSelected && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onActivateSelected}
+                            className="h-8 text-green-600 hover:bg-green-600 hover:text-white"
+                        >
+                            <Power className="mr-1 h-4 w-4" />
+                            Activar
+                        </Button>
+                    )}
+
+                    {onDeactivateSelected && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onDeactivateSelected}
+                            className="h-8 text-amber-600 hover:bg-amber-600 hover:text-white"
+                        >
+                            <PowerOff className="mr-1 h-4 w-4" />
+                            Desactivar
+                        </Button>
+                    )}
+
                     {onDeleteSelected && (
                         <Button
                             variant="outline"

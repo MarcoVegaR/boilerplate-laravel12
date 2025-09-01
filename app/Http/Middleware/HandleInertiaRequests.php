@@ -73,9 +73,14 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $permissions = (array) config('permissions.permissions', []);
-        $can = collect($permissions)->mapWithKeys(
-            fn (string $perm) => [$perm => (bool) ($request->user()?->can($perm))]
-        )->all();
+        $can = collect($permissions)->mapWithKeys(function (string $perm) use ($request) {
+            try {
+                return [$perm => (bool) ($request->user()?->can($perm))];
+            } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+                // When a configured permission has not been seeded yet, default to false
+                return [$perm => false];
+            }
+        })->all();
 
         return [
             ...parent::share($request),

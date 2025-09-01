@@ -17,5 +17,6 @@ Route::prefix('roles')
             ->name('bulk')
             ->middleware('throttle:bulk');
         Route::get('/selected', [RolesController::class, 'selected'])->name('selected');
+        Route::patch('/{role}/active', [RolesController::class, 'setActive'])->name('setActive');
         Route::delete('/{role}', [RolesController::class, 'destroy'])->name('destroy');
     });

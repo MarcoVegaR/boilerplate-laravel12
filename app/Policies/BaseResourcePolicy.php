@@ -112,6 +112,18 @@ abstract class BaseResourcePolicy
     }
 
     /**
+     * Determine whether the user can set active/inactive the model.
+     *
+     * @param  User  $user  The user to authorize
+     * @param  mixed  $model  The model instance being updated for activation state
+     * @return bool True if authorized, false otherwise
+     */
+    public function setActive(User $user, $model): bool
+    {
+        return $this->can($user, 'setActive');
+    }
+
+    /**
      * Determine whether the user can delete the model.
      *
      * @param  User  $user  The user to authorize
@@ -177,7 +189,8 @@ abstract class BaseResourcePolicy
             'delete' => $this->can($user, 'delete'),
             'restore' => $this->can($user, 'restore'),
             'forceDelete' => $this->can($user, 'forceDelete'),
-            'setActive', 'update' => $this->can($user, 'update'),
+            'setActive' => $this->can($user, 'setActive'),
+            'update' => $this->can($user, 'update'),
             default => false,
         };
     }

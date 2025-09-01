@@ -65,6 +65,8 @@ export interface DataTableProps<TData = unknown> {
     canExport?: boolean;
     onExportClick?: (format: string, table: Table<TData>) => void;
     onDeleteSelectedClick?: () => void;
+    onActivateSelectedClick?: () => void;
+    onDeactivateSelectedClick?: () => void;
     paginationMode?: PaginationMode;
     getRowId?: (originalRow: TData, index: number) => string;
     enableRowSelection?: boolean;
@@ -103,6 +105,8 @@ export function DataTable<TData>({
     canExport: enableExport = false,
     onExportClick,
     onDeleteSelectedClick,
+    onActivateSelectedClick,
+    onDeactivateSelectedClick,
     paginationMode: _paginationMode = 'offset',
     getRowId,
     enableRowSelection = false,
@@ -177,7 +181,14 @@ export function DataTable<TData>({
     const hasSelection = !!table.getColumn?.('select');
 
     // Extract permissions
-    const { canCreate: _canCreate, canEdit: _canEdit, canDelete: _canDelete, canExport: _canExport, canBulkDelete } = permissions || {};
+    const {
+        canCreate: _canCreate,
+        canEdit: _canEdit,
+        canDelete: _canDelete,
+        canExport: _canExport,
+        canBulkDelete,
+        canBulkSetActive,
+    } = permissions || {};
 
     // Column visibility options for menu
     const columnVisibilityOptions = React.useMemo(
@@ -270,6 +281,8 @@ export function DataTable<TData>({
                 <BulkActionBar
                     selectedCount={selectedCount}
                     onDeleteSelected={canBulkDelete ? onDeleteSelectedClick : undefined}
+                    onActivateSelected={canBulkSetActive ? onActivateSelectedClick : undefined}
+                    onDeactivateSelected={canBulkSetActive ? onDeactivateSelectedClick : undefined}
                     onClearSelection={() => table.toggleAllRowsSelected(false)}
                 />
             )}

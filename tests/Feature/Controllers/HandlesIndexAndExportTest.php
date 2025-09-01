@@ -536,7 +536,7 @@ class HandlesIndexAndExportTest extends TestCase
         $permissionMap = [
             'viewAny' => 'roles.view',
             'export' => 'roles.export',
-            'update' => ['roles.update', 'roles.delete', 'roles.restore', 'roles.force-delete', 'roles.set-active'],
+            'update' => ['roles.update', 'roles.delete', 'roles.restore', 'roles.force-delete', 'roles.setActive'],
             'viewSelected' => 'roles.view',  // Add mapping for viewSelected
         ];
 
@@ -554,7 +554,7 @@ class HandlesIndexAndExportTest extends TestCase
         $permissionMap = [
             'viewAny' => 'roles.view',
             'export' => 'roles.export',
-            'update' => ['roles.update', 'roles.delete', 'roles.restore', 'roles.force-delete', 'roles.set-active'],
+            'update' => ['roles.update', 'roles.delete', 'roles.restore', 'roles.force-delete', 'roles.setActive'],
             'viewSelected' => 'roles.view',  // Add mapping for viewSelected
         ];
 
@@ -581,7 +581,7 @@ class HandlesIndexAndExportTest extends TestCase
             'roles.delete',
             'roles.restore',
             'roles.force-delete',
-            'roles.set-active',
+            'roles.setActive',
         ];
 
         foreach ($permissions as $permission) {

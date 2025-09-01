@@ -68,6 +68,7 @@ class FlashAndRedirectTest extends TestCase
             'roles.update',
             'roles.delete',
             'roles.restore',
+            'roles.setActive',
         ];
 
         foreach ($permissions as $permission) {

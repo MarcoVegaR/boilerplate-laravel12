@@ -46,5 +46,11 @@ class UsersSeeder extends Seeder
             // Clear permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
+
+        // Generate 50 additional random test users (only in local/testing environments)
+        if (app()->environment(['local', 'testing'])) {
+            \App\Models\User::factory()->count(50)->create();
+            $this->command->info('Created 50 additional random test users');
+        }
     }
 }
