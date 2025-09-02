@@ -137,7 +137,7 @@ class RoleServiceTest extends TestCase
         $roleWeb1->givePermissionTo($permWeb1);
         $user->assignRole($roleWeb1); // contributes to 'active'
 
-        $roleWeb2 = Role::create(['name' => 'web2', 'guard_name' => 'web']);
+        $roleWeb2 = Role::create(['name' => 'web2', 'guard_name' => 'web', 'is_active' => false]);
         $permWeb2 = Permission::create(['name' => 'perm.web.2', 'guard_name' => 'web']); // no description on purpose
         $roleWeb2->givePermissionTo($permWeb2);
 

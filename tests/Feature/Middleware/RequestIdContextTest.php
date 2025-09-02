@@ -28,7 +28,7 @@ class RequestIdContextTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function request_id_is_shared_in_inertia_props(): void
     {
         $response = $this->actingAs($this->user)
@@ -42,7 +42,7 @@ class RequestIdContextTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function request_id_is_included_in_response_headers(): void
     {
         $response = $this->actingAs($this->user)->get('/test-headers-unique');
@@ -57,7 +57,7 @@ class RequestIdContextTest extends TestCase
         $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $requestId);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function existing_request_id_header_is_preserved(): void
     {
         $customRequestId = 'custom-request-id-12345';
@@ -70,7 +70,7 @@ class RequestIdContextTest extends TestCase
         $response->assertHeader('X-Request-Id', $customRequestId);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function context_includes_request_id_and_user_id(): void
     {
         $response = $this->actingAs($this->user)->get('/test-context-unique');
@@ -86,7 +86,7 @@ class RequestIdContextTest extends TestCase
         $this->assertEquals($this->user->id, $data['context']['user_id']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function context_includes_null_user_id_for_guest_requests(): void
     {
         $response = $this->get('/test-guest-context-unique');
@@ -102,7 +102,7 @@ class RequestIdContextTest extends TestCase
         $this->assertNull($data['context']['user_id']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function request_attributes_contain_request_id(): void
     {
         $response = $this->actingAs($this->user)->get('/test-attributes-unique');

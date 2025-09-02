@@ -130,7 +130,7 @@ class FlashAndRedirectTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_delete_with_success_redirects_with_flash_success(): void
     {
         $this->allowPolicy('update');
@@ -157,7 +157,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('success', '2 registro(s) eliminados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_set_active_with_success_redirects_with_flash_success(): void
     {
         $this->allowPolicy('update');
@@ -183,7 +183,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('success', '1 registro(s) desactivados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_restore_with_success_redirects_with_flash_success(): void
     {
         $this->allowPolicy('update');
@@ -209,7 +209,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('success', '1 registro(s) restaurados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_without_ids_redirects_with_flash_error(): void
     {
         $this->allowPolicy('update');
@@ -225,7 +225,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('error', 'Se requieren IDs o UUIDs para la operación');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_when_service_throws_domain_exception_redirects_with_flash_error(): void
     {
         $this->allowPolicy('update');
@@ -246,7 +246,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('error', 'Error de dominio específico');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_when_service_throws_generic_exception_redirects_with_generic_error(): void
     {
         $this->allowPolicy('update');
@@ -267,7 +267,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('error', 'Error durante la operación masiva. Inténtelo nuevamente.');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_without_permission_returns_403(): void
     {
         $this->denyPolicy('update');
@@ -281,7 +281,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertForbidden();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_when_service_throws_domain_exception_redirects_with_flash_error(): void
     {
         $this->allowPolicy('export');
@@ -301,7 +301,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('error', 'Error en la exportación de datos');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_when_service_throws_generic_exception_redirects_with_generic_error(): void
     {
         $this->allowPolicy('export');
@@ -318,7 +318,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionHas('error', 'Error durante la exportación. Inténtelo nuevamente.');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_with_success_returns_streamed_response(): void
     {
         $this->allowPolicy('export');
@@ -345,7 +345,7 @@ class FlashAndRedirectTest extends TestCase
         $this->assertInstanceOf(StreamedResponse::class, $response->baseResponse);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validation_errors_still_return_422_redirect_without_flash(): void
     {
         $this->allowPolicy('update');
@@ -361,7 +361,7 @@ class FlashAndRedirectTest extends TestCase
         $response->assertSessionMissing(['success', 'error', 'info']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function flash_message_is_available_in_session_after_redirect(): void
     {
         // Simular que hay un mensaje flash en la sesión
@@ -370,7 +370,7 @@ class FlashAndRedirectTest extends TestCase
         $this->assertEquals('Operación completada exitosamente', session('success'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function request_id_is_set_on_request(): void
     {
         // Test básico que verifica si el middleware de Inertia está funcionando

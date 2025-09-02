@@ -160,7 +160,7 @@ class HandlesIndexAndExportTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_with_authorized_user_calls_service_and_returns_inertia_with_only_rows_meta(): void
     {
         // Allow policy for this test
@@ -210,7 +210,7 @@ class HandlesIndexAndExportTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function index_forbidden_when_policy_denies_view_any(): void
     {
         $this->denyPolicy('viewAny');
@@ -220,7 +220,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertForbidden();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_with_authorized_user_calls_service_export_method(): void
     {
         // Allow policies for this test
@@ -251,7 +251,7 @@ class HandlesIndexAndExportTest extends TestCase
         $this->assertInstanceOf(StreamedResponse::class, $response->baseResponse);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_defaults_to_csv_when_no_format_specified(): void
     {
         // Allow policies for this test
@@ -270,7 +270,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_forbidden_when_policy_denies_export(): void
     {
         $this->denyPolicy('export');
@@ -280,7 +280,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertForbidden();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_delete_validates_payload_and_calls_service_methods(): void
     {
         $this->allowPolicy('update');
@@ -304,7 +304,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHas('success', '3 registro(s) eliminados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_set_active_validates_payload_and_calls_service_methods(): void
     {
         $this->allowPolicy('update');
@@ -329,7 +329,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHas('success', '2 registro(s) activados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_validates_action_and_rejects_invalid_actions(): void
     {
         $this->allowPolicy('update');
@@ -343,7 +343,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHasErrors(['action']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_forbidden_when_policy_denies_update(): void
     {
         $this->denyPolicy('update');
@@ -356,7 +356,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertForbidden();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_delete_redirects_with_success_message(): void
     {
         // Allow policies for this test
@@ -382,7 +382,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHas('success', '3 registro(s) eliminados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_set_active_with_custom_action(): void
     {
         // Allow policies for this test
@@ -409,7 +409,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHas('success', '2 registro(s) activados exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function selected_returns_roles_by_ids(): void
     {
         // Allow policies for this test
@@ -452,7 +452,7 @@ class HandlesIndexAndExportTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function selected_returns_empty_when_missing_ids(): void
     {
         // Allow policies for this test
@@ -467,7 +467,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHasErrors(['ids']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function selected_requires_ids_array(): void
     {
         $this->allowPolicy('viewAny');
@@ -480,7 +480,7 @@ class HandlesIndexAndExportTest extends TestCase
         $response->assertSessionHasErrors(['ids']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function selected_forbidden_when_policy_denies_view_any(): void
     {
         $this->denyPolicy('viewAny');

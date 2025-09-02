@@ -44,8 +44,8 @@ class SetRoleActiveRequest extends FormRequest
             // If deactivating, apply business constraints
             if ($desiredActive === false) {
                 // 1) Block deactivation of protected roles
-                $protected = (array) config('permissions.roles.roles.protected', []);
-                $blockProtected = (bool) config('permissions.roles.roles.activation.block_deactivate_protected', true);
+                $protected = (array) config('permissions.roles.protected', []);
+                $blockProtected = (bool) config('permissions.roles.activation.block_deactivate_protected', true);
                 if ($blockProtected && in_array($role->name, $protected, true)) {
                     session()->flash('error', 'No se puede desactivar un rol protegido del sistema.');
                     $validator->errors()->add('role', 'No se puede desactivar un rol protegido del sistema.');
@@ -54,7 +54,7 @@ class SetRoleActiveRequest extends FormRequest
                 }
 
                 // 2) Optionally block deactivation if role has assigned users
-                $blockIfHasUsers = (bool) config('permissions.roles.roles.activation.block_deactivate_if_has_users', false);
+                $blockIfHasUsers = (bool) config('permissions.roles.activation.block_deactivate_if_has_users', false);
                 if ($blockIfHasUsers) {
                     $hasUsers = DB::table('model_has_roles')
                         ->where('role_id', $role->id)

@@ -6,19 +6,26 @@ namespace Tests\Feature\Controllers;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class SetRoleActiveTest extends TestCase
 {
-    use RefreshDatabase, WithoutMiddleware;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(\Database\Seeders\PermissionsSeeder::class);
         $this->seed(\Database\Seeders\RolesTestSeeder::class);
+
+        // Ensure default behavior in tests: blocking deactivation of protected roles
+        // and roles with users, and the protected list includes 'admin'.
+        config([
+            'permissions.roles.activation.block_deactivate_protected' => true,
+            'permissions.roles.activation.block_deactivate_if_has_users' => true,
+            'permissions.roles.protected' => ['admin'],
+        ]);
     }
 
     public function test_can_activate_inactive_role(): void
@@ -35,7 +42,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act
-        $response = $this->patch("/roles/{$role->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", [
             'active' => true,
         ]);
 
@@ -62,7 +69,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act
-        $response = $this->patch("/roles/{$adminRole->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$adminRole->id}/active", [
             'active' => false,
         ]);
 
@@ -93,7 +100,7 @@ class SetRoleActiveTest extends TestCase
         $targetUser->assignRole($role);
 
         // Act
-        $response = $this->patch("/roles/{$role->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", [
             'active' => false,
         ]);
 
@@ -120,7 +127,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act
-        $response = $this->patch("/roles/{$role->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", [
             'active' => false,
         ]);
 
@@ -146,7 +153,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act
-        $response = $this->patch("/roles/{$role->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", [
             'active' => false,
         ]);
 
@@ -168,7 +175,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act - Missing 'active' parameter
-        $response = $this->patch("/roles/{$role->id}/active", []);
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", []);
 
         // Assert
         $response->assertSessionHasErrors(['active']);
@@ -188,7 +195,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act - Invalid 'active' parameter
-        $response = $this->patch("/roles/{$role->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", [
             'active' => 'invalid',
         ]);
 
@@ -204,7 +211,7 @@ class SetRoleActiveTest extends TestCase
         $this->actingAs($user);
 
         // Act
-        $response = $this->patch('/roles/999/active', [
+        $response = $this->patchWithCsrf('/roles/999/active', [
             'active' => false,
         ]);
 
@@ -215,7 +222,7 @@ class SetRoleActiveTest extends TestCase
     public function test_config_controls_protection_validation(): void
     {
         // Arrange - Temporarily disable protection via config
-        config(['permissions.roles.roles.activation.block_deactivate_protected' => false]);
+        config(['permissions.roles.activation.block_deactivate_protected' => false]);
 
         $user = User::factory()->create();
         $user->givePermissionTo('roles.setActive');
@@ -229,7 +236,7 @@ class SetRoleActiveTest extends TestCase
         ]);
 
         // Act
-        $response = $this->patch("/roles/{$adminRole->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$adminRole->id}/active", [
             'active' => false,
         ]);
 
@@ -244,7 +251,7 @@ class SetRoleActiveTest extends TestCase
     public function test_config_controls_users_validation(): void
     {
         // Arrange - Temporarily disable users validation via config
-        config(['permissions.roles.roles.activation.block_deactivate_if_has_users' => false]);
+        config(['permissions.roles.activation.block_deactivate_if_has_users' => false]);
 
         $user = User::factory()->create();
         $user->givePermissionTo('roles.setActive');
@@ -261,7 +268,7 @@ class SetRoleActiveTest extends TestCase
         $targetUser->assignRole($role);
 
         // Act
-        $response = $this->patch("/roles/{$role->id}/active", [
+        $response = $this->patchWithCsrf("/roles/{$role->id}/active", [
             'active' => false,
         ]);
 

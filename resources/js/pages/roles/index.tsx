@@ -109,7 +109,7 @@ function getInitialQuery(): QueryState {
 
     return {
         page: parseInt(params.get('page') || '1'),
-        per_page: parseInt(params.get('per_page') || '25'),
+        per_page: parseInt(params.get('per_page') || '10'),
         search: params.get('q') || '',
         sort: params.get('sort') || '',
         dir,

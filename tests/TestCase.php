@@ -36,4 +36,28 @@ abstract class TestCase extends BaseTestCase
             self::$routesRegisteredFor[$appKey] = true;
         }
     }
+
+    /**
+     * Issue a POST request including a valid CSRF token in session and header.
+     */
+    protected function postWithCsrf(string $uri, array $data = [], array $headers = [])
+    {
+        $token = bin2hex(random_bytes(32));
+
+        return $this->withSession(['_token' => $token])
+            ->withHeader('X-CSRF-TOKEN', $token)
+            ->post($uri, array_merge(['_token' => $token], $data), $headers);
+    }
+
+    /**
+     * Issue a PATCH request including a valid CSRF token in session and header.
+     */
+    protected function patchWithCsrf(string $uri, array $data = [], array $headers = [])
+    {
+        $token = bin2hex(random_bytes(32));
+
+        return $this->withSession(['_token' => $token])
+            ->withHeader('X-CSRF-TOKEN', $token)
+            ->patch($uri, array_merge(['_token' => $token], $data), $headers);
+    }
 }

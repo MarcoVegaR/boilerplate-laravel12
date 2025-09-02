@@ -24,7 +24,7 @@ class RedirectsAndFlashTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function post_mutation_redirects_with_303_status(): void
     {
         $response = $this->actingAs($this->user)
@@ -37,7 +37,7 @@ class RedirectsAndFlashTest extends TestCase
         $response->assertSessionHas('success', 'Recurso creado exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function put_mutation_redirects_with_303_status(): void
     {
         $response = $this->actingAs($this->user)
@@ -49,7 +49,7 @@ class RedirectsAndFlashTest extends TestCase
         $response->assertSessionHas('success', 'Recurso actualizado exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function delete_mutation_redirects_with_303_status(): void
     {
         $response = $this->actingAs($this->user)
@@ -61,7 +61,7 @@ class RedirectsAndFlashTest extends TestCase
         $response->assertSessionHas('success', 'Recurso eliminado exitosamente');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function patch_mutation_redirects_with_303_status(): void
     {
         $response = $this->actingAs($this->user)
@@ -73,7 +73,7 @@ class RedirectsAndFlashTest extends TestCase
         $response->assertSessionHas('info', 'Estado actualizado');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function get_requests_do_not_redirect_with_303(): void
     {
         $response = $this->actingAs($this->user)
@@ -85,7 +85,7 @@ class RedirectsAndFlashTest extends TestCase
         $response->assertRedirect('/redirect-test-other-unique');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_inertia_requests_use_standard_redirects(): void
     {
         // Sin header X-Inertia, debe usar redirect estándar 302
@@ -97,7 +97,7 @@ class RedirectsAndFlashTest extends TestCase
         $response->assertSessionHas('success', 'Success message');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function flash_messages_persist_across_redirects(): void
     {
         $response = $this->actingAs($this->user)

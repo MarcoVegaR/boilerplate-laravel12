@@ -65,14 +65,14 @@ class BaseIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function authorize_always_returns_true()
     {
         $request = new TestIndexRequest;
         $this->assertTrue($request->authorize());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_basic_fields_successfully()
     {
         $data = [
@@ -87,7 +87,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertTrue($validator->passes());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_q_field()
     {
         // Valid cases
@@ -116,7 +116,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_page_field()
     {
         // Valid cases
@@ -145,7 +145,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_per_page_field()
     {
         // Valid cases
@@ -175,7 +175,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_sort_field()
     {
         // Valid cases
@@ -206,7 +206,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_dir_field()
     {
         // Valid cases
@@ -234,7 +234,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_filters_structure()
     {
         // Valid cases
@@ -262,7 +262,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_specific_filter_rules()
     {
         // Valid filter cases
@@ -305,7 +305,7 @@ class BaseIndexRequestTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function applies_default_per_page_when_missing()
     {
         $data = ['q' => 'test'];
@@ -315,7 +315,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals(10, $request->input('per_page')); // Default from test class
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function limits_per_page_to_max_when_exceeded()
     {
         // This should fail validation since 100 > 50 (maxPerPage for test class)
@@ -330,7 +330,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals(45, $request->input('per_page'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function normalizes_direction_to_lowercase()
     {
         $data = ['dir' => 'ASC'];
@@ -340,7 +340,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals('asc', $request->input('dir'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function normalizes_boolean_strings_in_filters()
     {
         $data = [
@@ -361,7 +361,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertFalse($filters['is_guest']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function normalizes_date_ranges_when_from_greater_than_to()
     {
         $data = [
@@ -380,7 +380,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals('2024-12-31', $range['to']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function normalizes_numeric_ranges_when_from_greater_than_to()
     {
         $data = [
@@ -399,7 +399,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals('50', $range['to']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function ensures_filters_is_array()
     {
         $data = ['q' => 'test']; // No filters provided
@@ -410,7 +410,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEmpty($request->input('filters'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function applies_custom_sanitize_hook()
     {
         $data = ['q' => '  search term with spaces  '];
@@ -420,7 +420,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals('search term with spaces', $request->input('q')); // Trimmed
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function to_list_query_returns_correct_dto()
     {
         $data = [
@@ -448,7 +448,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEquals(['status' => 'active', 'ids' => [1, 2, 3]], $listQuery->filters);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function to_list_query_applies_defaults()
     {
         $data = ['q' => 'search']; // Minimal data
@@ -467,7 +467,7 @@ class BaseIndexRequestTest extends TestCase
         $this->assertEmpty($listQuery->filters);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function handles_complex_nested_filters()
     {
         $data = [
@@ -531,7 +531,7 @@ class BaseIndexRequestTest extends TestCase
         return $request;
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validates_array_filters_with_wildcards()
     {
         $data = [

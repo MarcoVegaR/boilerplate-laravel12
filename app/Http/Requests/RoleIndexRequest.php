@@ -50,4 +50,12 @@ class RoleIndexRequest extends BaseIndexRequest
     {
         return 100;
     }
+
+    /**
+     * Get the default number of items per page.
+     */
+    protected function defaultPerPage(): int
+    {
+        return 10;
+    }
 }

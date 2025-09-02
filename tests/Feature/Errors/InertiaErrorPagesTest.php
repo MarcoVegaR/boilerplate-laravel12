@@ -13,9 +13,8 @@ use Tests\TestCase;
  *
  * Verifica que las páginas de error se renderizan correctamente
  * cuando se accede con requests de Inertia vs requests normales.
- *
- * @group errors
  */
+#[\PHPUnit\Framework\Attributes\Group('errors')]
 class InertiaErrorPagesTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,7 +27,7 @@ class InertiaErrorPagesTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function access_denied_exception_renders_inertia_403_page(): void
     {
         $response = $this->actingAs($this->user)
@@ -41,7 +40,7 @@ class InertiaErrorPagesTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function not_found_exception_renders_inertia_404_page(): void
     {
         // Test directo de una ruta que no existe con header Inertia
@@ -55,7 +54,7 @@ class InertiaErrorPagesTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_inertia_requests_do_not_use_inertia_error_pages(): void
     {
         // Sin header X-Inertia, debe usar páginas de error normales de Laravel

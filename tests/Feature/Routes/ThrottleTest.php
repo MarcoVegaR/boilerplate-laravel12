@@ -24,7 +24,7 @@ class ThrottleTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function export_endpoint_is_rate_limited_per_user(): void
     {
         // Simular 10 requests (el límite)
@@ -40,7 +40,7 @@ class ThrottleTest extends TestCase
         $response->assertHeader('Retry-After');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bulk_endpoint_is_rate_limited_per_user(): void
     {
         // Simular 15 requests (el límite para bulk)
@@ -56,7 +56,7 @@ class ThrottleTest extends TestCase
         $response->assertHeader('Retry-After');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function rate_limiting_is_per_user_not_global(): void
     {
         $user2 = User::factory()->create();
@@ -75,7 +75,7 @@ class ThrottleTest extends TestCase
         $response->assertOk();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function unauthenticated_requests_are_limited_by_ip(): void
     {
         // Simular 10 requests no autenticados desde la misma IP

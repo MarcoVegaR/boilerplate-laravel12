@@ -25,6 +25,17 @@ return [
         // Description for the independent activation permission
         'roles.setActive' => 'Activar/desactivar roles',
     ],
+    // Top-level keys for activation/protection used by requests & tests
+    // (kept duplicated for compatibility with existing nested structure)
+    'protected' => [
+        'admin',
+    ],
+    'activation' => [
+        // Bloquear desactivación si el rol tiene usuarios asignados
+        'block_deactivate_if_has_users' => true,
+        // Bloquear desactivación de roles protegidos
+        'block_deactivate_protected' => true,
+    ],
     // Configuración de roles para validaciones de eliminación
     'roles' => [
         // Lista de nombres de roles que no pueden eliminarse
