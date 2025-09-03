@@ -49,16 +49,21 @@ nav:
       - Rate Limiting: backend/rate-limiting.md
       - Logging & Context: backend/logging-context.md
       - Policies: backend/policies.md
+      - Show Pattern: backend/show-pattern.md
       - Testing:
           - Repositories: backend/testing-repositories.md
           - Services: backend/testing-services.md
       - Requests:
           - BaseIndexRequest: backend/requests.md
+  - Frontend:
+      - Show Pattern: frontend/show-pattern.md
   - Referencia:
       - Variables y permisos: reference/variables-y-permisos.md
       - Localización por defecto (ES): reference/localizacion-por-defecto.md
       - DataTable API: reference/datatable-api.md
       - Gestión de Roles: reference/roles-management.md
+      - Accesibilidad: reference/accessibility.md
+      - Buenas prácticas de rendimiento: reference/performance.md
   - Explicaciones:
       - Auditoría vs logging: explanations/auditoria-vs-logging.md
   - CI/CD:
