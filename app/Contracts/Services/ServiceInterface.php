@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contracts\Services;
 
 use App\DTO\ListQuery;
+use App\DTO\ShowQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -85,6 +86,22 @@ interface ServiceInterface
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function getOrFailByUuid(string $uuid, array $with = []): Model;
+
+    // --- Show (detalle) ---
+
+    /**
+     * Show a resource by ID with ShowQuery parameters.
+     *
+     * @return array{item: array<string, mixed>, meta: array<string, mixed>}
+     */
+    public function showById(int|string $id, ShowQuery $query): array;
+
+    /**
+     * Show a resource by UUID with ShowQuery parameters.
+     *
+     * @return array{item: array<string, mixed>, meta: array<string, mixed>}
+     */
+    public function showByUuid(string $uuid, ShowQuery $query): array;
 
     // --- Escritura ---
 

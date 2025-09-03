@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Contracts\Services\RoleServiceInterface;
+use App\DTO\ShowQuery;
 use App\Http\Requests\ActivateBulkRolesRequest;
 use App\Http\Requests\DeleteBulkRolesRequest;
 use App\Http\Requests\DeleteRolesRequest;
 use App\Http\Requests\RoleIndexRequest;
+use App\Http\Requests\RoleShowRequest;
 use App\Http\Requests\SetRoleActiveRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -46,8 +50,39 @@ class RolesController extends BaseIndexController
         $extras = $this->roleService->getIndexExtras();
         $response->with('stats', $extras['stats'] ?? []);
         $response->with('availablePermissions', $extras['availablePermissions'] ?? []);
+        // Expose whether the edit route exists so the UI can hide Edit buttons if missing
+        $response->with('hasEditRoute', Route::has('roles.edit'));
 
         return $response;
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function show(Request $request, Role $role): \Inertia\Response
+    {
+        // Authorize view action via policy
+        $this->authorize('view', $role);
+
+        // Convert request to ShowRequest for validation
+        $showRequest = RoleShowRequest::createFrom($request);
+        $showRequest->setContainer(app());
+        $showRequest->setRedirector(app('redirect'));
+        $showRequest->validateResolved();
+
+        // Build ShowQuery from validated request
+        $query = $showRequest->toShowQuery();
+
+        // Get show data from service
+        $data = $this->roleService->showById($role->id, $query);
+        // Add flag for edit route availability
+        $data['hasEditRoute'] = Route::has('roles.edit');
+
+        // Return Inertia response
+        return Inertia::render('roles/show', $data);
     }
 
     /**
@@ -113,7 +148,7 @@ class RolesController extends BaseIndexController
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete multiple roles.pecified resource from storage.
      *
      * @return \Illuminate\Http\RedirectResponse
      *

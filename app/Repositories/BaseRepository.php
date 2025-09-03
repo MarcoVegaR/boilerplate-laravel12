@@ -6,9 +6,11 @@ namespace App\Repositories;
 
 use App\Contracts\Repositories\RepositoryInterface;
 use App\DTO\ListQuery;
+use App\DTO\ShowQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +94,15 @@ abstract class BaseRepository implements RepositoryInterface
     protected function withRelations(Builder $builder): Builder
     {
         return $builder;
+    }
+
+    /**
+     * Column name used to represent the "active" state.
+     * Repositories can override to adapt to different schemas (e.g., 'is_active').
+     */
+    protected function activeColumn(): string
+    {
+        return 'active';
     }
 
     // === MÉTODOS COMUNES IMPLEMENTADOS ===
@@ -382,12 +393,77 @@ abstract class BaseRepository implements RepositoryInterface
             ->first();
     }
 
+    /**
+     * Find by UUID or fail.
+     *
+     * @param  array<string>  $with
+     *
+     * @throws ModelNotFoundException
+     */
     public function findOrFailByUuid(string $uuid, array $with = []): Model
     {
-        return $this->builder()
-            ->with($with)
-            ->where('uuid', $uuid)
-            ->firstOrFail();
+        $builder = $this->builder();
+        if (! empty($with)) {
+            $builder->with($with);
+        }
+
+        return $builder->where('uuid', $uuid)->firstOrFail();
+    }
+
+    /**
+     * Show a model by ID with ShowQuery parameters.
+     *
+     * @throws ModelNotFoundException
+     */
+    public function showById(int|string $id, ShowQuery $query): Model
+    {
+        $builder = $this->builder();
+        $this->applyShowQuery($builder, $query);
+
+        return $builder->findOrFail($id);
+    }
+
+    /**
+     * Show a model by UUID with ShowQuery parameters.
+     *
+     * @throws ModelNotFoundException
+     */
+    public function showByUuid(string $uuid, ShowQuery $query): Model
+    {
+        $builder = $this->builder();
+        $this->applyShowQuery($builder, $query);
+
+        return $builder->where('uuid', $uuid)->firstOrFail();
+    }
+
+    /**
+     * Apply ShowQuery parameters to a query builder.
+     *
+     * @param  Builder<Model>  $builder
+     * @return Builder<Model>
+     */
+    protected function applyShowQuery(Builder $builder, ShowQuery $query): Builder
+    {
+        // Apply eager loading
+        if ($query->hasRelations()) {
+            $builder->with($query->with);
+        }
+
+        // Apply counts
+        if ($query->hasCounts()) {
+            $builder->withCount($query->withCount);
+        }
+
+        // Apply custom relationship loading (includes users_count for roles)
+        $builder = $this->withRelations($builder);
+
+        // Apply soft deletes
+        if ($query->withTrashed && in_array(SoftDeletes::class, class_uses_recursive($this->modelClass))) {
+            /** @phpstan-ignore-next-line withTrashed available when model uses SoftDeletes */
+            $builder->withTrashed();
+        }
+
+        return $builder;
     }
 
     public function existsById(int|string $id): bool
@@ -485,7 +561,7 @@ abstract class BaseRepository implements RepositoryInterface
 
     public function setActive(Model|int|string $modelOrId, bool $active): Model
     {
-        return $this->update($modelOrId, ['active' => $active]);
+        return $this->update($modelOrId, [$this->activeColumn() => $active]);
     }
 
     // === OPERACIONES MASIVAS ===
@@ -538,7 +614,7 @@ abstract class BaseRepository implements RepositoryInterface
             return 0;
         }
 
-        return $this->builder()->whereIn('id', $ids)->update(['active' => $active]);
+        return $this->builder()->whereIn('id', $ids)->update([$this->activeColumn() => $active]);
     }
 
     public function bulkDeleteByUuids(array $uuids): int
@@ -584,7 +660,7 @@ abstract class BaseRepository implements RepositoryInterface
             return 0;
         }
 
-        return $this->builder()->whereIn('uuid', $uuids)->update(['active' => $active]);
+        return $this->builder()->whereIn('uuid', $uuids)->update([$this->activeColumn() => $active]);
     }
 
     // === CONCURRENCIA (PESSIMISTIC LOCK) ===

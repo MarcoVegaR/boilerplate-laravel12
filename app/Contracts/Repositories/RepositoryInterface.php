@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contracts\Repositories;
 
 use App\DTO\ListQuery;
+use App\DTO\ShowQuery;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -88,6 +89,22 @@ interface RepositoryInterface
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function findOrFailByUuid(string $uuid, array $with = []): Model;
+
+    // === SHOW (DETALLE) ===
+
+    /**
+     * Muestra un registro por ID aplicando parámetros de ShowQuery.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function showById(int|string $id, ShowQuery $query): Model;
+
+    /**
+     * Muestra un registro por UUID aplicando parámetros de ShowQuery.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function showByUuid(string $uuid, ShowQuery $query): Model;
 
     // === EXISTENCIA / CONTEOS ===
 

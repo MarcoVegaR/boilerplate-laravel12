@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -33,6 +33,13 @@ export type TRole = {
 function RoleActionsCell({ role }: { role: TRole }) {
     const [open, setOpen] = React.useState(false);
     const [openToggle, setOpenToggle] = React.useState(false);
+    const { auth } = usePage<{
+        auth?: { can?: Record<string, boolean> };
+    }>().props;
+
+    const canUpdate = !!auth?.can?.['roles.update'];
+    const canDelete = !!auth?.can?.['roles.delete'];
+    const canSetActive = !!auth?.can?.['roles.setActive'];
 
     return (
         <>
@@ -52,35 +59,41 @@ function RoleActionsCell({ role }: { role: TRole }) {
                             Ver detalles
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/roles/${role.id}/edit`} className="cursor-pointer">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                        </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onSelect={() => {
-                            setTimeout(() => setOpenToggle(true), 100);
-                        }}
-                        className={
-                            role.is_active
-                                ? 'text-amber-600 focus:text-amber-700 dark:text-amber-400 dark:focus:text-amber-300'
-                                : 'text-emerald-600 focus:text-emerald-700 dark:text-emerald-400 dark:focus:text-emerald-300'
-                        }
-                    >
-                        <Power className="mr-2 h-4 w-4" />
-                        {role.is_active ? 'Desactivar' : 'Activar'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onSelect={() => {
-                            // Defer to avoid focus conflicts with closing menu
-                            setTimeout(() => setOpen(true), 100);
-                        }}
-                        className="text-red-600 focus:text-red-700 dark:text-red-400 dark:focus:text-red-300"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
-                    </DropdownMenuItem>
+                    {canUpdate && (
+                        <DropdownMenuItem asChild>
+                            <Link href={`/roles/${role.id}/edit`} className="cursor-pointer">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
+                    {canSetActive && (
+                        <DropdownMenuItem
+                            onSelect={() => {
+                                setTimeout(() => setOpenToggle(true), 100);
+                            }}
+                            className={
+                                role.is_active
+                                    ? 'text-amber-600 focus:text-amber-700 dark:text-amber-400 dark:focus:text-amber-300'
+                                    : 'text-emerald-600 focus:text-emerald-700 dark:text-emerald-400 dark:focus:text-emerald-300'
+                            }
+                        >
+                            <Power className="mr-2 h-4 w-4" />
+                            {role.is_active ? 'Desactivar' : 'Activar'}
+                        </DropdownMenuItem>
+                    )}
+                    {canDelete && (
+                        <DropdownMenuItem
+                            onSelect={() => {
+                                // Defer to avoid focus conflicts with closing menu
+                                setTimeout(() => setOpen(true), 100);
+                            }}
+                            className="text-red-600 focus:text-red-700 dark:text-red-400 dark:focus:text-red-300"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

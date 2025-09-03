@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Contracts\Repositories\RepositoryInterface;
 use App\Contracts\Services\ServiceInterface;
 use App\DTO\ListQuery;
+use App\DTO\ShowQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -82,6 +83,83 @@ abstract class BaseService implements ServiceInterface
     public function getOrFailByUuid(string $uuid, array $with = []): Model
     {
         return $this->repo->findOrFailByUuid($uuid, $with);
+    }
+
+    /**
+     * Show a resource by ID with ShowQuery parameters.
+     *
+     * @return array{item: array<string, mixed>, meta: array<string, mixed>}
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function showById(int|string $id, ShowQuery $query): array
+    {
+        $model = $this->repo->showById($id, $query);
+
+        // Apply appends if requested
+        if ($query->hasAppends()) {
+            $model->append($query->append);
+        }
+
+        return [
+            'item' => $this->toItem($model),
+            'meta' => $this->getShowMeta($model, $query),
+        ];
+    }
+
+    /**
+     * Show a resource by UUID with ShowQuery parameters.
+     *
+     * @return array{item: array<string, mixed>, meta: array<string, mixed>}
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function showByUuid(string $uuid, ShowQuery $query): array
+    {
+        $model = $this->repo->showByUuid($uuid, $query);
+
+        // Apply appends if requested
+        if ($query->hasAppends()) {
+            $model->append($query->append);
+        }
+
+        return [
+            'item' => $this->toItem($model),
+            'meta' => $this->getShowMeta($model, $query),
+        ];
+    }
+
+    /**
+     * Transform a model to item representation for show operations.
+     * Override in child classes for custom transformations.
+     *
+     * @return array<string, mixed>
+     */
+    protected function toItem(Model $model): array
+    {
+        // Default implementation uses toRow for consistency
+        // Override for different show representation if needed
+        return $this->toRow($model);
+    }
+
+    /**
+     * Get metadata for show operations.
+     * Override in child classes to add custom metadata.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getShowMeta(Model $model, ShowQuery $query): array
+    {
+        $modelArray = $model->toArray();
+        $countFields = array_filter(
+            array_keys($modelArray),
+            fn ($key) => str_ends_with($key, '_count')
+        );
+
+        return [
+            'loaded_relations' => array_keys($model->getRelations()),
+            'loaded_counts' => array_values($countFields),
+        ];
     }
 
     // --- Escritura ---

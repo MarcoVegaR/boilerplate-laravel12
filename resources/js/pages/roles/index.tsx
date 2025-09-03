@@ -367,12 +367,6 @@ export default function RolesIndex() {
                                         <ChevronRight className="h-3 w-3 text-gray-400" />
                                     </BreadcrumbSeparator>
                                     <BreadcrumbItem>
-                                        <span className="text-gray-500 dark:text-gray-400">Configuración</span>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator>
-                                        <ChevronRight className="h-3 w-3 text-gray-400" />
-                                    </BreadcrumbSeparator>
-                                    <BreadcrumbItem>
                                         <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">Roles</BreadcrumbPage>
                                     </BreadcrumbItem>
                                 </BreadcrumbList>

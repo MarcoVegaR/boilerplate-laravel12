@@ -50,6 +50,14 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
     }
 
     /**
+     * Use 'is_active' column for roles' active state.
+     */
+    protected function activeColumn(): string
+    {
+        return 'is_active';
+    }
+
+    /**
      * Apply eager loading for role relationships.
      *
      * @param  \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>  $builder
