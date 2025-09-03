@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.2.0...v1.2.1) (2025-09-03)
+
+### Bug Fixes
+
+- **roles:** always show Edit if user can update ([9ef2bba](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/9ef2bba02d20718c2a769d0696e87d183a91a3e8))
+
 # [1.2.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.1.0...v1.2.0) (2025-09-01)
 
 ### Features
