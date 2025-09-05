@@ -127,13 +127,19 @@ export function DataTable<TData>({
             id: 'select',
             header: ({ table }) => (
                 <Checkbox
-                    checked={table.getIsAllPageRowsSelected()}
+                    checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
                     onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                     aria-label="Seleccionar todos"
+                    className="data-[state=checked]:border-primary data-[state=checked]:bg-primary focus-visible:ring-primary/50 border-2 border-slate-400 shadow-sm hover:border-slate-500 dark:border-slate-500 dark:hover:border-slate-400"
                 />
             ),
             cell: ({ row }) => (
-                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Seleccionar fila" />
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Seleccionar fila"
+                    className="data-[state=checked]:border-primary data-[state=checked]:bg-primary focus-visible:ring-primary/50 mt-0.5 border-2 border-slate-400 shadow-sm hover:border-slate-500 dark:border-slate-500 dark:hover:border-slate-400"
+                />
             ),
             enableSorting: false,
             enableHiding: false,
@@ -173,8 +179,12 @@ export function DataTable<TData>({
         getRowId,
     });
 
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedCount = selectedRows.length;
+    // IMPORTANT: count selected rows across all pages (from controlled state),
+    // not just the currently loaded/visible page rows.
+    const selectedCount = React.useMemo(() => {
+        const state = rowSelection || {};
+        return Object.values(state).filter(Boolean).length;
+    }, [rowSelection]);
 
     const cellPaddingClass = density === 'compact' ? 'p-2' : 'p-3';
 
@@ -283,7 +293,14 @@ export function DataTable<TData>({
                     onDeleteSelected={canBulkDelete ? onDeleteSelectedClick : undefined}
                     onActivateSelected={canBulkSetActive ? onActivateSelectedClick : undefined}
                     onDeactivateSelected={canBulkSetActive ? onDeactivateSelectedClick : undefined}
-                    onClearSelection={() => table.toggleAllRowsSelected(false)}
+                    onClearSelection={() => {
+                        // Clear the controlled selection state globally
+                        if (onRowSelectionChange) {
+                            onRowSelectionChange({});
+                        } else {
+                            table.toggleAllRowsSelected(false);
+                        }
+                    }}
                 />
             )}
 

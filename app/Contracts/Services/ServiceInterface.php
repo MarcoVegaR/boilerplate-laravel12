@@ -103,6 +103,13 @@ interface ServiceInterface
      */
     public function showByUuid(string $uuid, ShowQuery $query): array;
 
+    /**
+     * Transform a single model for show views.
+     *
+     * @return array<string, mixed>
+     */
+    public function toItem(Model $model): array;
+
     // --- Escritura ---
 
     /**
@@ -125,7 +132,13 @@ interface ServiceInterface
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function update(Model|int|string $modelOrId, array $attributes): Model;
+    /**
+     * Update model by instance or ID
+     *
+     * @param  array<string, mixed>  $attributes
+     * @param  string|null  $expectedUpdatedAt  Expected updated_at for optimistic locking
+     */
+    public function update(Model|int|string $modelOrId, array $attributes, ?string $expectedUpdatedAt = null): Model;
 
     /**
      * Upsert multiple rows

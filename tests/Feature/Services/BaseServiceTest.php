@@ -240,7 +240,7 @@ class BaseServiceTest extends TestCase
         $this->assertSame($collection, $result);
     }
 
-    public function test_update_wraps_in_transaction(): void
+    public function test_update_calls_repository_update_method(): void
     {
         $id = 1;
         $attributes = ['name' => 'Updated'];
@@ -252,9 +252,14 @@ class BaseServiceTest extends TestCase
                 return $callback();
             });
 
+        $this->mockRepo->shouldReceive('findOrFailById')
+            ->once()
+            ->with($id)
+            ->andReturn($model);
+
         $this->mockRepo->shouldReceive('update')
             ->once()
-            ->with($id, $attributes)
+            ->with($model, $attributes)
             ->andReturn($model);
 
         $result = $this->service->update($id, $attributes);

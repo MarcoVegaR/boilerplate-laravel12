@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Roles;
 
 use App\DTO\ListQuery;
+use App\Models\Role;
 use App\Models\User;
 use App\Repositories\RoleRepository;
 use App\Services\RoleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RoleServiceTest extends TestCase

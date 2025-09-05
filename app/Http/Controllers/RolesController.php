@@ -6,16 +6,20 @@ namespace App\Http\Controllers;
 
 use App\Contracts\Services\RoleServiceInterface;
 use App\DTO\ShowQuery;
+use App\Http\Controllers\Concerns\HandlesForm;
 use App\Http\Requests\ActivateBulkRolesRequest;
 use App\Http\Requests\DeleteBulkRolesRequest;
 use App\Http\Requests\DeleteRolesRequest;
 use App\Http\Requests\RoleIndexRequest;
 use App\Http\Requests\RoleShowRequest;
+use App\Http\Requests\RoleStoreRequest;
+use App\Http\Requests\RoleUpdateRequest;
 use App\Http\Requests\SetRoleActiveRequest;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Controller for Role management operations.
@@ -24,6 +28,8 @@ use Spatie\Permission\Models\Role;
  */
 class RolesController extends BaseIndexController
 {
+    use HandlesForm;
+
     /**
      * Create a new controller instance.
      *
@@ -148,7 +154,78 @@ class RolesController extends BaseIndexController
     }
 
     /**
-     * Delete multiple roles.pecified resource from storage.
+     * Get the form view name for create/edit.
+     *
+     * @param  string  $mode  'create' o 'edit'
+     */
+    protected function formView(string $mode): string
+    {
+        return 'roles/form';
+    }
+
+    /**
+     * Get additional data for the form view.
+     *
+     * @return array<string, mixed>
+     */
+    protected function formOptions(): array
+    {
+        // Get all available permissions for the form
+        $permissions = Permission::query()
+            ->select(['id', 'name', 'description', 'guard_name'])
+            ->orderBy('name')
+            ->get()
+            ->map(function (Permission $permission): array {
+                return [
+                    'value' => $permission->id,
+                    'label' => (string) ($permission->getAttribute('description') ?? $permission->name),
+                    'name' => $permission->name,
+                    'guard' => $permission->guard_name,
+                ];
+            })
+            ->toArray();
+
+        return [
+            'permissions' => $permissions,
+            'guards' => [
+                ['value' => 'web', 'label' => 'Web'],
+            ],
+        ];
+    }
+
+    /**
+     * Get the store request class.
+     */
+    protected function storeRequestClass(): string
+    {
+        return RoleStoreRequest::class;
+    }
+
+    /**
+     * Get the update request class.
+     */
+    protected function updateRequestClass(): string
+    {
+        return RoleUpdateRequest::class;
+    }
+
+    /**
+     * Get empty model structure for create form.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getEmptyModel(): array
+    {
+        return [
+            'name' => null,
+            'guard_name' => null,
+            'is_active' => null,
+            'permissions' => [],
+        ];
+    }
+
+    /**
+     * Delete the specified resource from storage.
      *
      * @return \Illuminate\Http\RedirectResponse
      *

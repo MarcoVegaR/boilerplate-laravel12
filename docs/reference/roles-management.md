@@ -21,9 +21,10 @@ El sistema de gestión de roles proporciona una interfaz completa para administr
 - **Tabla Optimizada**: Diseño UX mejorado con reordenamiento inteligente de columnas
     - Flujo de lectura optimizado: ID → Nombre → Usuarios → Permisos → Guard → Creado → Estado → Acciones
     - Alturas de fila consistentes y alineación mejorada
-- **Columna de Permisos**: Muestra conteo con popover detallado
-    - Conteo numérico centrado para fácil escaneo
-    - Popover clickeable con lista completa de permisos
+- **Columna de Permisos**: Muestra nombres como badges con overflow inteligente
+    - Muestra los primeros 2 permisos como badges
+    - Si hay más, muestra un badge "+N"
+    - Popover opcional para ver la lista completa
 - **Columna de Usuarios**: Conteo con detalles en popover
     - Badge con número de usuarios asignados
     - Popover con lista de nombres de usuarios
@@ -305,6 +306,32 @@ Algunos metadatos de columnas como `exportLabel` pueden generar advertencias de 
 - La búsqueda por ID utiliza casting a TEXT que puede impactar el rendimiento en tablas grandes
 - Se recomienda indexar las columnas utilizadas frecuentemente en búsquedas
 - El eager loading de permisos reduce las consultas N+1
+
+### Concurrencia y Bloqueo Optimista
+
+Para evitar sobrescrituras en ediciones concurrentes, se implementa bloqueo optimista usando el campo `_version` con el valor de `updated_at` del modelo.
+
+- En el frontend (formulario de edición), se envía `_version` como el `updated_at` original (ISO 8601) recibido al cargar la página.
+- En el backend, `HandlesForm::update()` reenvía `_version` a `BaseService::update()`, que convierte ambos valores a timestamps Unix antes de compararlos.
+- Si el timestamp actual del modelo difiere del esperado, se lanza una `DomainActionException` con un mensaje claro para recargar la página.
+
+Ejemplo (backend):
+
+```php
+// App\Http\Controllers\Concerns\HandlesForm@update
+$expectedUpdatedAt = $request->input('_version');
+$model = $this->service->update($model, $validated, $expectedUpdatedAt);
+
+// App\Services\BaseService::update
+$currentTimestamp  = $model->updated_at?->timestamp;
+$expectedTimestamp = \Carbon\Carbon::parse($expectedUpdatedAt)->timestamp;
+
+if ($currentTimestamp !== $expectedTimestamp) {
+    throw new \App\Exceptions\DomainActionException(
+        'El registro ha sido modificado por otro usuario. Por favor, recarga la página e intenta nuevamente.'
+    );
+}
+```
 
 ### Seguridad
 

@@ -280,10 +280,15 @@ export default function RolesIndex() {
             window.localStorage.setItem('roles_table_density', d);
         }
     }, []);
-
+    // Extract and sanitize selected role IDs from rowSelection keys (getRowId set to role.id)
+    const getSanitizedSelectedIds = React.useCallback((): number[] => {
+        const ids = Object.keys(rowSelection).map((key) => Number(key));
+        const sanitized = Array.from(new Set(ids.filter((v) => Number.isFinite(v) && Number.isInteger(v) && v > 0)));
+        return sanitized;
+    }, [rowSelection]);
     // Handle bulk delete
     const handleBulkDelete = React.useCallback(() => {
-        const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+        const selectedIds = getSanitizedSelectedIds();
 
         if (selectedIds.length === 0) {
             toast.warning('No hay filas seleccionadas');
@@ -291,11 +296,11 @@ export default function RolesIndex() {
         }
 
         setDeleteConfirm({ show: true, count: selectedIds.length });
-    }, [rowSelection, rows]);
+    }, [getSanitizedSelectedIds]);
 
     // Handle bulk activate
     const handleBulkActivate = React.useCallback(() => {
-        const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+        const selectedIds = getSanitizedSelectedIds();
 
         if (selectedIds.length === 0) {
             toast.warning('No hay filas seleccionadas');
@@ -303,11 +308,11 @@ export default function RolesIndex() {
         }
 
         setActivateConfirm({ show: true, count: selectedIds.length });
-    }, [rowSelection, rows]);
+    }, [getSanitizedSelectedIds]);
 
     // Handle bulk deactivate
     const handleBulkDeactivate = React.useCallback(() => {
-        const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+        const selectedIds = getSanitizedSelectedIds();
 
         if (selectedIds.length === 0) {
             toast.warning('No hay filas seleccionadas');
@@ -315,7 +320,7 @@ export default function RolesIndex() {
         }
 
         setDeactivateConfirm({ show: true, count: selectedIds.length });
-    }, [rowSelection, rows]);
+    }, [getSanitizedSelectedIds]);
 
     // Update URL and reload when state changes (skip first mount)
     React.useEffect(() => {
@@ -462,6 +467,7 @@ export default function RolesIndex() {
                                     enableGlobalFilter={true}
                                     density={density}
                                     onDensityChange={handleDensityChange}
+                                    getRowId={(row) => String(row.id)}
                                 />
                             </div>
                         </div>
@@ -475,7 +481,7 @@ export default function RolesIndex() {
                             description={`¿Está seguro de eliminar ${deleteConfirm.count} rol(es)? Esta acción no se puede deshacer.`}
                             confirmLabel="Eliminar"
                             onConfirm={async () => {
-                                const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+                                const selectedIds = getSanitizedSelectedIds();
                                 await new Promise<void>((resolve, reject) => {
                                     router.post(
                                         '/roles/bulk',
@@ -504,7 +510,7 @@ export default function RolesIndex() {
                             description={`¿Está seguro de activar ${activateConfirm.count} rol(es)?`}
                             confirmLabel="Activar"
                             onConfirm={async () => {
-                                const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+                                const selectedIds = getSanitizedSelectedIds();
                                 await new Promise<void>((resolve, reject) => {
                                     router.post(
                                         '/roles/bulk',
@@ -533,7 +539,7 @@ export default function RolesIndex() {
                             description={`¿Está seguro de desactivar ${deactivateConfirm.count} rol(es)?`}
                             confirmLabel="Desactivar"
                             onConfirm={async () => {
-                                const selectedIds = Object.keys(rowSelection).map((index) => rows[parseInt(index)].id);
+                                const selectedIds = getSanitizedSelectedIds();
                                 await new Promise<void>((resolve, reject) => {
                                     router.post(
                                         '/roles/bulk',

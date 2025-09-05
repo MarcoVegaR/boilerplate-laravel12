@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts\Services;
 
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 /**
  * Service interface for Role operations.

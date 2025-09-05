@@ -6,11 +6,11 @@ namespace App\Services;
 
 use App\Contracts\Services\RoleServiceInterface;
 use App\DTO\ListQuery;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -45,6 +45,9 @@ class RoleService extends BaseService implements RoleServiceInterface
         );
         $permissionsDetails = implode(', ', array_filter($permissionDescriptions, fn ($v) => $v !== ''));
 
+        // IDs for form preselection (ensure integers)
+        $permissionIds = $role->permissions->pluck('id')->map(fn ($v) => (int) $v)->toArray();
+
         // Fetch up to N user names via pivot to avoid guard-dependent relation
         $usersLimit = 10;
         $userNames = DB::table('model_has_roles as mhr')
@@ -67,6 +70,7 @@ class RoleService extends BaseService implements RoleServiceInterface
             'name' => $role->name,
             'guard_name' => $role->guard_name,
             'permissions' => $permissionsArray,
+            'permissions_ids' => $permissionIds,
             'permissions_count' => $role->permissions_count ?? $role->permissions->count(),
             'users_count' => $usersCount,
             // Extra fields for UI/tooltips
@@ -76,6 +80,7 @@ class RoleService extends BaseService implements RoleServiceInterface
             'users_details' => $usersDetails,
             'is_active' => (bool) ($role->getAttribute('is_active') ?? true),
             'created_at' => $role->created_at,
+            'updated_at' => $role->updated_at,
         ];
     }
 
@@ -136,6 +141,43 @@ class RoleService extends BaseService implements RoleServiceInterface
             'stats' => $stats,
             'availablePermissions' => $availablePermissions,
         ];
+    }
+
+    /**
+     * Hook called after creating a role.
+     * Syncs permissions if provided.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function afterCreate(Model $model, array $attributes): void
+    {
+        if (isset($attributes['permissions_ids'])) {
+            if ($model instanceof \Spatie\Permission\Models\Role) {
+                $model->syncPermissions($attributes['permissions_ids']);
+            }
+        }
+
+        // Clear permission cache after changes
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /**
+     * Hook called after updating a role.
+     * Syncs permissions if provided.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function afterUpdate(Model $model, array $attributes): void
+    {
+        // Only sync permissions if the key exists (even if empty array)
+        if (array_key_exists('permissions_ids', $attributes)) {
+            if ($model instanceof \Spatie\Permission\Models\Role) {
+                $model->syncPermissions($attributes['permissions_ids'] ?? []);
+            }
+        }
+
+        // Clear permission cache after changes
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     /**

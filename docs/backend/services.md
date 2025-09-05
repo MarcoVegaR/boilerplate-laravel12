@@ -288,6 +288,35 @@ $updatedRole = $this->roleService->withPessimisticLockById(
 );
 ```
 
+### Bloqueo Optimista con updated_at
+
+En operaciones de actualización, los services implementan bloqueo optimista comparando el `updated_at` esperado con el valor actual del modelo. Esto evita sobrescribir cambios hechos por otro usuario:
+
+```php
+// App\Http\Controllers\Concerns\HandlesForm@update
+$expectedUpdatedAt = $request->input('_version'); // ISO 8601 desde el frontend
+$model = $this->service->update($model, $validated, $expectedUpdatedAt);
+```
+
+En `App\Services\BaseService::update()` se normalizan ambos valores a timestamps Unix para evitar discrepancias de formato:
+
+```php
+// Normalización y comparación segura por timestamp
+$currentTimestamp  = $model->updated_at?->timestamp;
+$expectedTimestamp = \Carbon\Carbon::parse($expectedUpdatedAt)->timestamp;
+
+if ($currentTimestamp !== $expectedTimestamp) {
+    throw new \App\Exceptions\DomainActionException(
+        'El registro ha sido modificado por otro usuario. Por favor, recarga la página e intenta nuevamente.'
+    );
+}
+```
+
+Recomendaciones:
+
+- Enviar desde el frontend un campo oculto `_version` con el `updated_at` recibido al cargar el formulario.
+- Tras un conflicto, refrescar el recurso y mostrar un aviso claro al usuario.
+
 ## Manejo de Errores
 
 ### Propagar Excepciones de Dominio

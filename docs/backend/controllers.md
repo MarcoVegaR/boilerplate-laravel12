@@ -365,6 +365,45 @@ class RolesController extends Controller
 - **🧪 Testeable** con mocks y políticas controladas
 - **📈 Escalable** sin lógica duplicada entre controladores
 
+## Controladores de Formularios (HandlesForm)
+
+Para operaciones de formulario (crear/editar), utiliza el trait `App\Http\Controllers\Concerns\HandlesForm`. Este proporciona endpoints estándar:
+
+- `GET /resource/create` → muestra el formulario de creación
+- `POST /resource` → almacena un nuevo recurso
+- `GET /resource/{id}/edit` → muestra el formulario de edición
+- `PUT /resource/{id}` → actualiza un recurso existente
+
+### Flujo de actualización con bloqueo optimista
+
+En el método `update`, el trait valida el Request concreto (FormRequest), recupera el valor de versión `_version` enviado desde el frontend y lo pasa al Service para comparar contra el `updated_at` actual del modelo. Si difiere, se lanza una excepción de dominio para evitar sobrescrituras de ediciones concurrentes.
+
+```php
+public function update(\Illuminate\Http\Request $request, Model|int|string $modelOrId): \Illuminate\Http\RedirectResponse
+{
+    $model = $this->resolveModel($modelOrId);
+    $this->authorize('update', $model);
+
+    $requestClass = $this->updateRequestClass();
+    $validatedRequest = $requestClass::createFrom($request);
+    $validatedRequest->setContainer(app());
+    $validatedRequest->setRedirector(app('redirect'));
+    $validatedRequest->validateResolved();
+
+    try {
+        $validated = $validatedRequest->validated();
+        $expectedUpdatedAt = $request->input('_version');
+        $model = $this->service->update($model, $validated, $expectedUpdatedAt);
+
+        return $this->ok($this->indexRouteName(), [], $this->getSuccessMessage('updated', $model));
+    } catch (\App\Exceptions\DomainActionException $e) {
+        return $this->fail($this->editRouteName($model), $this->getRouteParameters($model), $e->getMessage());
+    }
+}
+```
+
+Nota sobre Policies (Laravel 11/12): asegúrate de registrar explícitamente `App\Providers\AuthServiceProvider::class` en `bootstrap/providers.php` para que las policies se carguen correctamente. De lo contrario, los Gates fallarán (403) aunque los permisos sean correctos.
+
 ### Testing
 
 Ver `tests/Feature/Controllers/HandlesIndexAndExportTest.php` para ejemplos completos de testing con mocks de ServiceInterface y políticas temporales.

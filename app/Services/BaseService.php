@@ -8,6 +8,7 @@ use App\Contracts\Repositories\RepositoryInterface;
 use App\Contracts\Services\ServiceInterface;
 use App\DTO\ListQuery;
 use App\DTO\ShowQuery;
+use App\Exceptions\DomainActionException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -130,12 +131,11 @@ abstract class BaseService implements ServiceInterface
     }
 
     /**
-     * Transform a model to item representation for show operations.
-     * Override in child classes for custom transformations.
+     * Transform a single model for show views.
      *
      * @return array<string, mixed>
      */
-    protected function toItem(Model $model): array
+    public function toItem(Model $model): array
     {
         // Default implementation uses toRow for consistency
         // Override for different show representation if needed
@@ -165,11 +165,27 @@ abstract class BaseService implements ServiceInterface
     // --- Escritura ---
 
     /**
+     * Create a new model with transaction support and hooks.
+     *
      * @param  array<string, mixed>  $attributes
      */
     public function create(array $attributes): Model
     {
-        return $this->transaction(fn () => $this->repo->create($attributes));
+        return $this->transaction(function () use ($attributes) {
+            // Hook before save
+            $this->beforeCreate($attributes);
+
+            // Create the model
+            $model = $this->repo->create($attributes);
+
+            // Sync relations if needed
+            $this->syncRelations($model, $attributes);
+
+            // Hook after save
+            $this->afterCreate($model, $attributes);
+
+            return $model;
+        });
     }
 
     /**
@@ -182,11 +198,49 @@ abstract class BaseService implements ServiceInterface
     }
 
     /**
+     * Update a model with transaction support, optimistic locking and hooks.
+     *
      * @param  array<string, mixed>  $attributes
+     * @param  string|null  $expectedUpdatedAt  Expected updated_at for optimistic locking
+     *
+     * @throws DomainActionException if optimistic lock fails
      */
-    public function update(Model|int|string $modelOrId, array $attributes): Model
+    public function update(Model|int|string $modelOrId, array $attributes, ?string $expectedUpdatedAt = null): Model
     {
-        return $this->transaction(fn () => $this->repo->update($modelOrId, $attributes));
+        return $this->transaction(function () use ($modelOrId, $attributes, $expectedUpdatedAt) {
+            // Get the model if we have an ID
+            $model = $modelOrId instanceof Model ? $modelOrId : $this->repo->findOrFailById($modelOrId);
+
+            // Check optimistic lock if provided
+            if ($expectedUpdatedAt !== null) {
+                // Normalize both dates to timestamps for comparison to handle different formats
+                /** @var null|\Illuminate\Support\Carbon $currentUpdatedAt */
+                $currentUpdatedAt = $model->getAttribute('updated_at');
+                $currentTimestamp = $currentUpdatedAt?->timestamp;
+                $expectedTimestamp = \Carbon\Carbon::parse($expectedUpdatedAt)->timestamp;
+
+                if ($currentTimestamp !== $expectedTimestamp) {
+                    throw new DomainActionException(
+                        'El registro ha sido modificado por otro usuario. Por favor, recarga la página e intenta nuevamente.'
+                    );
+                }
+            }
+
+            // Hook before update
+            $this->beforeUpdate($model, $attributes);
+
+            // Remove fields that shouldn't be passed to the model's update method
+            $updateAttributes = $attributes;
+            unset($updateAttributes['permissions_ids']);
+
+            // Update the model
+            $model = $this->repo->update($model, $updateAttributes);
+
+            // Hook after update (pass original attributes)
+            $this->afterUpdate($model, $attributes);
+
+            return $model;
+        });
     }
 
     public function upsert(array $rows, array $uniqueBy, array $updateColumns): int
@@ -399,5 +453,82 @@ abstract class BaseService implements ServiceInterface
         // Por defecto, intentamos derivar del repositorio
         // Los servicios concretos deberían sobrescribir esto
         return 'Model';
+    }
+
+    // --- Hooks para create/update ---
+
+    /**
+     * Hook called before creating a model.
+     * Override in child services for custom logic.
+     *
+     * @param  array<string, mixed>  &$attributes
+     */
+    protected function beforeCreate(array &$attributes): void
+    {
+        // Override in child services
+    }
+
+    /**
+     * Hook called after creating a model.
+     * Override in child services for custom logic.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function afterCreate(Model $model, array $attributes): void
+    {
+        // Override in child services
+    }
+
+    /**
+     * Hook called before updating a model.
+     * Override in child services for custom logic.
+     *
+     * @param  array<string, mixed>  &$attributes
+     */
+    protected function beforeUpdate(Model $model, array &$attributes): void
+    {
+        // Override in child services
+    }
+
+    /**
+     * Hook called after updating a model.
+     * Override in child services for custom logic.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function afterUpdate(Model $model, array $attributes): void
+    {
+        // Override in child services
+    }
+
+    /**
+     * Sync many-to-many relations if present in attributes.
+     * Looks for keys ending with '_ids' and syncs them.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function syncRelations(Model $model, array $attributes): void
+    {
+        foreach ($attributes as $key => $value) {
+            // Check for relation IDs pattern (e.g., 'permissions_ids', 'roles_ids')
+            if (str_ends_with($key, '_ids') && is_array($value)) {
+                $relationName = str_replace('_ids', '', $key);
+
+                // Check if the relation exists
+                if (method_exists($model, $relationName)) {
+                    try {
+                        $relation = $model->$relationName();
+
+                        // Only sync if it's a BelongsToMany relation
+                        if ($relation instanceof \Illuminate\Database\Eloquent\Relations\BelongsToMany) {
+                            $relation->sync($value);
+                        }
+                    } catch (\Exception $e) {
+                        // Silently ignore if not a valid relation
+                        // Services can override syncRelations for custom handling
+                    }
+                }
+            }
+        }
     }
 }

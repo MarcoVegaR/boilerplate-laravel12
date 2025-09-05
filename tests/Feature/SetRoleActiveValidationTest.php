@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Http\Requests\SetRoleActiveRequest;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class SetRoleActiveValidationTest extends TestCase
@@ -64,6 +64,9 @@ class SetRoleActiveValidationTest extends TestCase
 
         $request->withValidator($validator);
 
+        // Trigger the after callbacks by calling passes()
+        $validator->passes();
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('role', $validator->errors()->toArray());
         $this->assertStringContainsString('protegido', $validator->errors()->first('role'));
@@ -114,6 +117,9 @@ class SetRoleActiveValidationTest extends TestCase
         );
 
         $request->withValidator($validator);
+
+        // Trigger the after callbacks by calling passes()
+        $validator->passes();
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('role', $validator->errors()->toArray());
