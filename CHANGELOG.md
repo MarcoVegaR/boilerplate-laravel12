@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.2.1...v1.2.2) (2025-09-05)
+
+### Bug Fixes
+
+- resolve PHPStan errors; normalize requests; apply Pint/Prettier; tests pass ([2fae293](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/2fae29321a9ebda3e61fda6e74b3eb3f0b6644a2))
+
 ## [1.2.1](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.2.0...v1.2.1) (2025-09-03)
 
 ### Bug Fixes
