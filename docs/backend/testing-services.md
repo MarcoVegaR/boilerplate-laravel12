@@ -1,3 +1,14 @@
+---
+title: 'Testing Services — Guía y Patrones'
+summary: 'Patrones y ejemplos para testear Services con mocks de repositorios/exporters, transacciones, concurrencia, exportación y cobertura.'
+icon: material/test-tube
+tags:
+    - how-to
+    - testing
+    - services
+    - backend
+---
+
 # Testing Services — Guía y Patrones
 
 ## Introducción

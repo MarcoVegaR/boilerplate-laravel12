@@ -1,3 +1,13 @@
+---
+title: 'Registro de usuarios deshabilitado (admin-only)'
+summary: 'Política para deshabilitar el registro público y cómo re-habilitarlo con seguridad: rutas, UI y controles recomendados.'
+icon: material/account-off
+tags:
+    - how-to
+    - seguridad
+    - auth
+---
+
 # Cómo: Registro de usuarios deshabilitado (admin-only)
 
 Objetivo: documentar la política de deshabilitar el registro público de usuarios y cómo re-habilitarlo si fuese necesario.

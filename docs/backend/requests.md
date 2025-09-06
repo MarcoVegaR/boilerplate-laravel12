@@ -1,3 +1,13 @@
+---
+title: 'BaseIndexRequest — Validación de parámetros de Index'
+summary: 'Referencia de BaseIndexRequest: validación, normalización, hooks (allowedSorts, filterRules, maxPerPage, sanitize) e integración con Inertia/TanStack.'
+icon: material/filter
+tags:
+    - referencia
+    - backend
+    - requests
+---
+
 # BaseIndexRequest — Validación de parámetros de Index
 
 El `BaseIndexRequest` es una clase abstracta que proporciona validación y normalización consistente para todos los endpoints de listado/índice en la aplicación. Se integra perfectamente con el sistema `BaseRepository`/`BaseService` a través del DTO `ListQuery`.

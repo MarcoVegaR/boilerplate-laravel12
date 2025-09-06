@@ -163,7 +163,7 @@ export function AuditFilters({ value, onChange }: AuditFiltersProps) {
                     {/* Event */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <History className="text-muted-foreground h-4 w-4" />
+                            <History className="h-4 w-4 text-orange-500 dark:text-orange-400" />
                             <Label className="text-sm font-medium">Evento</Label>
                         </div>
                         <Select value={localFilters.event || 'all'} onValueChange={handleEventChange}>
@@ -186,7 +186,7 @@ export function AuditFilters({ value, onChange }: AuditFiltersProps) {
                     {/* Entity Type */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <Monitor className="text-muted-foreground h-4 w-4" />
+                            <Monitor className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                             <Label className="text-sm font-medium">Tipo de Entidad</Label>
                         </div>
                         <Select value={localFilters.auditable_type || 'all'} onValueChange={handleEntityTypeChange}>
@@ -209,7 +209,7 @@ export function AuditFilters({ value, onChange }: AuditFiltersProps) {
                     {/* Date Range */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <Calendar className="text-muted-foreground h-4 w-4" />
+                            <Calendar className="h-4 w-4 text-green-500 dark:text-green-400" />
                             <Label className="text-sm font-medium">Rango de Fechas</Label>
                         </div>
                         <DatePicker mode="range" value={dateRange} onChange={handleDateRangeChange} placeholder="Selecciona un rango de fechas" />

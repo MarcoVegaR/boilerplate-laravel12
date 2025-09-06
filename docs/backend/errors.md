@@ -1,3 +1,14 @@
+---
+title: 'Páginas de Error (Inertia)'
+summary: 'Cómo configurar y renderizar páginas de error 403, 404 y 500+ con Inertia en Laravel 12, y cuándo usar páginas vs flash messages.'
+icon: material/alert-octagon-outline
+tags:
+    - how-to
+    - backend
+    - inertia
+    - errores
+---
+
 # Manejo de Errores con Inertia
 
 Este documento describe el sistema de manejo de errores coherente con Inertia.js, incluyendo páginas de error personalizadas y el uso de flash messages vs páginas de error.

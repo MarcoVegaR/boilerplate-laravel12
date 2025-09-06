@@ -1,3 +1,13 @@
+---
+title: 'Módulo: Auditoría'
+summary: 'Referencia del módulo de Auditoría: funcionalidades, permisos, campos, filtros, exportación y arquitectura técnica (backend + frontend).'
+icon: material/clipboard-text-clock
+tags:
+    - referencia
+    - módulo
+    - auditoría
+---
+
 # Módulo de Auditoría
 
 El módulo de auditoría proporciona un sistema completo para consultar y analizar el historial de actividad del sistema, basado en owen-it/laravel-auditing.

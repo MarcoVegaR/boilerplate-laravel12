@@ -109,6 +109,11 @@ export default function AuditoriaIndex() {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [filters, setFilters] = React.useState(initialQuery.filters);
+    const [density, setDensity] = React.useState<'comfortable' | 'compact'>(() => {
+        if (typeof window === 'undefined') return 'comfortable';
+        const saved = window.localStorage.getItem('auditoria_table_density');
+        return saved === 'compact' ? 'compact' : 'comfortable';
+    });
 
     // Avoid triggering a partial reload on first mount (prevents reading page.component before it's ready)
     const didMountRef = React.useRef(false);
@@ -230,6 +235,14 @@ export default function AuditoriaIndex() {
     const handleFiltersChange = React.useCallback((newFilters: AuditFilterValue) => {
         setFilters(newFilters);
         setPageIndex(0); // Reset to first page when filters change
+    }, []);
+
+    // Handle density change and persist
+    const handleDensityChange = React.useCallback((d: 'comfortable' | 'compact') => {
+        setDensity(d);
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem('auditoria_table_density', d);
+        }
     }, []);
 
     // Update URL and reload when state changes (skip first mount)
@@ -387,6 +400,8 @@ export default function AuditoriaIndex() {
                                     onExportClick={permissions.canExport ? (format: string) => handleExport(format) : undefined}
                                     enableRowSelection={false}
                                     enableGlobalFilter={true}
+                                    density={density}
+                                    onDensityChange={handleDensityChange}
                                 />
                             </div>
                         </div>

@@ -1,3 +1,13 @@
+---
+title: 'Services — Guía de Buenas Prácticas'
+summary: 'Rol de la capa de Services: orquestación, transacciones, transformación de datos, concurrencia y exportación; patrones y ejemplos.'
+icon: material/cogs
+tags:
+    - explicación
+    - backend
+    - services
+---
+
 # Services — Guía de Buenas Prácticas
 
 ## Introducción

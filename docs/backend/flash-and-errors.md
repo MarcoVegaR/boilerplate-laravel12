@@ -1,4 +1,16 @@
-# Flash Messages & Error Handling con Inertia
+---
+title: 'Flash Messages y Manejo de Errores (Inertia)'
+summary: 'Patrón de redirects HTTP 303 con mensajes flash, integración con Inertia y Sonner, y criterios para usar flash vs páginas de error.'
+icon: material/message-alert-outline
+tags:
+    - how-to
+    - backend
+    - inertia
+    - errores
+    - flash
+---
+
+# Flash Messages y Manejo de Errores (Inertia)
 
 Esta guía explica el manejo consistente de mensajes flash y errores en el backend Laravel para una UX uniforme con Inertia.js y Sonner.
 

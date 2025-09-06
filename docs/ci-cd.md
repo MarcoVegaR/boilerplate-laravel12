@@ -1,3 +1,13 @@
+---
+title: 'CI/CD y Chequeos Locales'
+summary: 'Qué valida la CI (lint, typecheck, build y tests) y cómo replicarlo localmente, además de servir/compilar la documentación con MkDocs.'
+icon: material/robot
+tags:
+    - ci
+    - calidad
+    - documentación
+---
+
 # CI/CD y Chequeos Locales
 
 Esta guía resume qué valida la CI y cómo replicarlo localmente antes de commitear.

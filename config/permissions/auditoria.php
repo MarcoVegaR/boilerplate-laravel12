@@ -7,4 +7,8 @@ return [
         'auditoria.view',
         'auditoria.export',
     ],
+    'descriptions' => [
+        'auditoria.view' => 'Ver registros de auditoría',
+        'auditoria.export' => 'Exportar registros de auditoría',
+    ],
 ];

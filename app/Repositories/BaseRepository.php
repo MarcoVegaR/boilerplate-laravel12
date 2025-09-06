@@ -454,9 +454,6 @@ abstract class BaseRepository implements RepositoryInterface
             $builder->withCount($query->withCount);
         }
 
-        // Apply custom relationship loading (includes users_count for roles)
-        $builder = $this->withRelations($builder);
-
         // Apply soft deletes
         if ($query->withTrashed && in_array(SoftDeletes::class, class_uses_recursive($this->modelClass))) {
             /** @phpstan-ignore-next-line withTrashed available when model uses SoftDeletes */

@@ -1,3 +1,13 @@
+---
+title: 'Auditoría vs logging'
+summary: 'Explica qué se audita vs qué se registra en logs, con implementación en este proyecto (laravel-auditing + RequestId/Context) y buenas prácticas.'
+icon: material/file-compare
+tags:
+    - explicación
+    - auditoría
+    - logging
+---
+
 # Explicación: Auditoría vs Logging
 
 Esta página explica qué se audita y qué se registra en logs en este proyecto, y por qué.

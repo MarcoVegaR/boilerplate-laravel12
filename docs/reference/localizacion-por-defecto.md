@@ -1,3 +1,12 @@
+---
+title: 'Localización por defecto (ES)'
+summary: 'Valores por defecto de idioma en backend y frontend: APP_LOCALE, fallback y faker; archivos de traducción y ejemplos de uso.'
+icon: material/translate
+tags:
+    - referencia
+    - localización
+---
+
 # Referencia: Localización por defecto (ES)
 
 Esta base asume español como idioma por defecto tanto en backend como en frontend.

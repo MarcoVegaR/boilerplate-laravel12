@@ -1,3 +1,13 @@
+---
+title: 'Repositorios e Interfaces — Guía de Buenas Prácticas'
+summary: 'Patrones y hooks del BaseRepository: búsqueda, filtros, ordenamiento, paginación, withRelations, filterMap y recomendaciones.'
+icon: material/source-branch
+tags:
+    - explicación
+    - backend
+    - repositorios
+---
+
 # Repositorios e Interfaces — Guía de Buenas Prácticas
 
 Esta guía describe el sistema de repositorios base implementado en el proyecto, diseñado para proveer funcionalidad completa de Index (búsqueda, filtros, ordenamiento, paginación), operaciones masivas y utilidades de concurrencia.

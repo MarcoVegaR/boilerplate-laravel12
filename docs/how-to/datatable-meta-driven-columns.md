@@ -1,4 +1,14 @@
-# DataTable Meta-Driven Columns
+---
+title: 'DataTable: columnas meta-driven'
+summary: 'Configurar metadatos de columnas (exportable, permisos, visibilidad y acciones) e integrar borrado y exportación con TanStack Table v8.'
+icon: material/table-column-plus-after
+tags:
+    - how-to
+    - frontend
+    - datatable
+---
+
+# DataTable: columnas meta-driven
 
 ## Overview
 

@@ -1,3 +1,13 @@
+---
+title: 'Onboarding (Tutorial)'
+summary: 'Primeros pasos: preparar entorno local (backend, frontend y pruebas) replicando lo que valida la CI.'
+icon: material/rocket-launch
+tags:
+    - tutorial
+    - onboarding
+    - entorno
+---
+
 # Onboarding (Tutorial)
 
 Objetivo: dejar el entorno listo (backend + frontend + pruebas) replicando lo que valida la CI.

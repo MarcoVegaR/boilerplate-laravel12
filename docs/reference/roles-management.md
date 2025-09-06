@@ -1,3 +1,14 @@
+---
+title: 'Gestión de Roles'
+summary: 'Referencia funcional de la gestión de roles: filtros, conteos por pivot, controlador, columnas de tabla, filtros y parámetros de URL.'
+icon: material/shield-account
+tags:
+    - referencia
+    - roles
+    - backend
+    - frontend
+---
+
 # Gestión de Roles
 
 ## Descripción General

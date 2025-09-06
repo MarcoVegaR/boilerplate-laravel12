@@ -1,3 +1,4 @@
+import { ConfirmAlert } from '@/components/dialogs/confirm-alert';
 import { SectionNav } from '@/components/show-base/SectionNav';
 import { ShowLayout } from '@/components/show-base/ShowLayout';
 import { ShowSection } from '@/components/show-base/ShowSection';
@@ -11,7 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useShow } from '@/hooks/use-show';
 import AppLayout from '@/layouts/app-layout';
-import { deleteRow } from '@/lib/delete-service';
 import type { PageProps } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -78,6 +78,8 @@ export default function RoleShow({ item: initialItem, meta: initialMeta, auth }:
         initialItem,
         initialMeta,
     });
+
+    // no local state needed when using ConfirmAlert trigger
 
     // Search/filter and accordion expansion state for permissions UI
     const [permSearch, setPermSearch] = useState('');
@@ -257,10 +259,35 @@ export default function RoleShow({ item: initialItem, meta: initialMeta, auth }:
                                 </Button>
                             )}
                             {auth.can['roles.delete'] && (
-                                <Button variant="destructive" onClick={() => deleteRow(item.id, '/roles/:id', () => router.visit('/roles'))}>
-                                    <Trash2 className="h-4 w-4" />
-                                    Eliminar
-                                </Button>
+                                <ConfirmAlert
+                                    trigger={
+                                        <Button variant="destructive" type="button">
+                                            <Trash2 className="h-4 w-4" />
+                                            Eliminar
+                                        </Button>
+                                    }
+                                    title="Eliminar Rol"
+                                    description={`¿Está seguro de eliminar el rol "${item.name}"? Esta acción no se puede deshacer.`}
+                                    confirmLabel="Eliminar"
+                                    onConfirm={async () => {
+                                        await new Promise<void>((resolve, reject) => {
+                                            router.delete(`/roles/${item.id}`, {
+                                                preserveState: false,
+                                                preserveScroll: true,
+                                                onSuccess: () => {
+                                                    resolve();
+                                                    router.visit('/roles');
+                                                },
+                                                onError: () => reject(new Error('role_delete_failed')),
+                                            });
+                                        });
+                                    }}
+                                    toastMessages={{
+                                        loading: `Eliminando "${item.name}"…`,
+                                        success: 'Rol eliminado',
+                                        error: 'No se pudo eliminar el rol',
+                                    }}
+                                />
                             )}
                         </div>
                     ) : null
@@ -548,6 +575,8 @@ export default function RoleShow({ item: initialItem, meta: initialMeta, auth }:
                     </TabsContent>
                 </Tabs>
             </ShowLayout>
+
+            {/* ConfirmAlert handled inline as trigger above */}
         </AppLayout>
     );
 }

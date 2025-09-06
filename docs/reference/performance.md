@@ -1,4 +1,13 @@
-# Performance Best Practices
+---
+title: 'Buenas prácticas de rendimiento'
+summary: 'Recomendaciones para optimizar rendimiento en frontend y backend: partial reloads, lazy loading, caches y payloads eficientes.'
+icon: material/rocket
+tags:
+    - referencia
+    - rendimiento
+---
+
+# Buenas prácticas de rendimiento
 
 Guidelines for optimizing performance in our frontend and backend:
 

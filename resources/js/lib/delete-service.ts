@@ -26,26 +26,44 @@ export async function deleteSingle<T = unknown>(id: string | number, options: De
         new Promise<void>((resolve, reject) => {
             const url = endpoint.replace(':id', String(id));
 
-            router.visit(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...headers,
-                },
-                preserveState,
-                preserveScroll,
-                onSuccess: (data) => {
-                    resolve();
-                    onSuccess?.(data as T);
-                },
-                onError: (errors) => {
-                    const error = new Error(
-                        typeof errors === 'object' && errors !== null ? (Object.values(errors)[0] as string) : 'Error al eliminar',
-                    );
-                    reject(error);
-                    onError?.(error);
-                },
-            });
+            if (method.toLowerCase() === 'delete') {
+                router.delete(url, {
+                    preserveState,
+                    preserveScroll,
+                    onSuccess: (data) => {
+                        resolve();
+                        onSuccess?.(data as T);
+                    },
+                    onError: (errors) => {
+                        const error = new Error(
+                            typeof errors === 'object' && errors !== null ? (Object.values(errors)[0] as string) : 'Error al eliminar',
+                        );
+                        reject(error);
+                        onError?.(error);
+                    },
+                });
+            } else {
+                router.visit(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...headers,
+                    },
+                    preserveState,
+                    preserveScroll,
+                    onSuccess: (data) => {
+                        resolve();
+                        onSuccess?.(data as T);
+                    },
+                    onError: (errors) => {
+                        const error = new Error(
+                            typeof errors === 'object' && errors !== null ? (Object.values(errors)[0] as string) : 'Error al eliminar',
+                        );
+                        reject(error);
+                        onError?.(error);
+                    },
+                });
+            }
         }),
         {
             loading: 'Eliminando...',

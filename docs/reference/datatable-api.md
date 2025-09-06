@@ -1,4 +1,14 @@
-# DataTable API Reference
+---
+title: 'API de DataTable'
+summary: 'Referencia de props, metadatos de columnas y utilidades de exportación/selección integradas con TanStack Table v8.'
+icon: material/table
+tags:
+    - referencia
+    - frontend
+    - datatable
+---
+
+# API de DataTable
 
 ## DataTableProps Interface
 

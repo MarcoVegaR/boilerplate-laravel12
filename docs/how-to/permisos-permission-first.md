@@ -1,4 +1,14 @@
-# Cómo: Permission-first (definir y aplicar permisos)
+---
+title: 'Permisos (permission-first)'
+summary: 'Cómo definir permisos por módulo, sincronizarlos con la base de datos, proteger rutas y exponerlos al frontend (Inertia) vía auth.can.'
+icon: material/key-variant
+tags:
+    - how-to
+    - permisos
+    - backend
+---
+
+# Permisos (permission-first)
 
 Objetivo: agregar un permiso nuevo, sembrarlo, proteger rutas y exponerlo al frontend (Inertia) vía `auth.can`.
 

@@ -1,3 +1,13 @@
+---
+title: 'Variables y permisos'
+summary: 'Referencia de variables de entorno principales y agregador de permisos (config/permissions.php) con notas de uso en backend y frontend.'
+icon: material/tune
+tags:
+    - referencia
+    - configuración
+    - permisos
+---
+
 # Referencia: Variables y permisos
 
 ## Variables de entorno (principales)

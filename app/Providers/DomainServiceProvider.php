@@ -61,6 +61,11 @@ class DomainServiceProvider extends ServiceProvider
             \App\Contracts\Repositories\AuditRepositoryInterface::class,
             \App\Repositories\AuditRepository::class
         );
+
+        $this->app->bind(
+            \App\Contracts\Repositories\UserRepositoryInterface::class,
+            \App\Repositories\UserRepository::class
+        );
     }
 
     /**
@@ -106,6 +111,15 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(\App\Services\AuditService::class, function ($app) {
             return new \App\Services\AuditService(
                 $app->make(\App\Contracts\Repositories\AuditRepositoryInterface::class),
+                $app
+            );
+        });
+
+        // Register UserService with its dependencies
+        $this->app->bind(\App\Contracts\Services\UserServiceInterface::class, \App\Services\UserService::class);
+        $this->app->bind(\App\Services\UserService::class, function ($app) {
+            return new \App\Services\UserService(
+                $app->make(\App\Contracts\Repositories\UserRepositoryInterface::class),
                 $app
             );
         });

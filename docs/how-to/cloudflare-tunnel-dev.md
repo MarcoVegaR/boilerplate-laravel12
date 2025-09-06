@@ -1,4 +1,14 @@
-# Cloudflare Tunnel (dev): Exponer Laravel + Vite (WSS HMR)
+---
+title: 'Cloudflare Tunnel (dev)'
+summary: 'Exponer Laravel y Vite en desarrollo con dos hosts (app y Vite HMR por WSS:443), proxies confiables y configuración del túnel.'
+icon: material/cloud-outline
+tags:
+    - how-to
+    - devops
+    - cloudflare
+---
+
+# Cloudflare Tunnel (dev)
 
 Esta guía explica cómo exponer tu entorno de desarrollo mediante Cloudflare Tunnel con dos hosts:
 

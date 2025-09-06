@@ -1,3 +1,13 @@
+---
+title: 'Policies'
+summary: 'Guía de policies de recursos con BaseResourcePolicy: abilities estándar, multi-guard, registro y mejores prácticas.'
+icon: material/shield-lock
+tags:
+    - explicación
+    - backend
+    - policies
+---
+
 # Policies
 
 Las **Policies** son clases que organizan la lógica de autorización para modelos específicos. Proporcionan una forma limpia de determinar si un usuario puede realizar una acción determinada sobre un recurso.

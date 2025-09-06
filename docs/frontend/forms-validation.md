@@ -1,3 +1,13 @@
+---
+title: 'Validación de formularios (frontend)'
+summary: 'Sistema de validación con Zod + Inertia useForm: hooks, componentes accesibles y patrones para errores, focus y recargas parciales.'
+icon: material/form-textbox
+tags:
+    - how-to
+    - frontend
+    - validación
+---
+
 # Sistema de Validación de Formularios
 
 ## Introducción

@@ -1,4 +1,14 @@
-# Controllers
+---
+title: 'Controladores (Index/Export y Formularios)'
+summary: 'Guía práctica de controladores con patrones HandlesIndexAndExport y HandlesForm, autorización por Policies e integración con Inertia (partial reloads).'
+icon: material/controller-classic
+tags:
+    - explicación
+    - backend
+    - controllers
+---
+
+# Controladores
 
 ## Base Controller para Index/Export
 

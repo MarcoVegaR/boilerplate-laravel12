@@ -1,3 +1,14 @@
+---
+title: 'Rate Limiting para Endpoints Caros'
+summary: 'Configurar y aplicar límites de tasa (exports, bulk) en Laravel 12 con limiters personalizados, middleware throttle y recomendaciones de UX.'
+icon: material/speedometer
+tags:
+    - how-to
+    - backend
+    - seguridad
+    - rendimiento
+---
+
 # Rate Limiting para Endpoints Caros
 
 Este documento describe la implementación de rate limiting para proteger endpoints computacionalmente caros como exportaciones y operaciones bulk.

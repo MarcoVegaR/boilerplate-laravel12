@@ -1,6 +1,19 @@
-# Show Pattern
+---
+title: 'Patrón Show (contenido movido)'
+summary: 'Esta página fue fusionada en una guía única How-to que cubre Backend y Frontend.'
+icon: material/eye-off-outline
+tags:
+    - how-to
+    - redirect
+    - backend
+---
 
-## Descripción
+# Patrón Show (contenido movido)
+
+Esta página ha sido consolidada en una guía única: [Cómo aplicar el patrón Show](../how-to/show-pattern.md).
+
+!!! note "Redirección"
+Si llegaste aquí desde un enlace antiguo, la nueva ubicación es `how-to/show-pattern.md`. La navegación se actualizó para reflejar Diátaxis.
 
 El patrón Show proporciona una forma estructurada y reutilizable de mostrar recursos individuales con soporte para eager loading, counts, y soft deletes. Sigue las convenciones del proyecto y se alinea con el patrón Index existente.
 

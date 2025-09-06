@@ -1,4 +1,14 @@
-# Cómo Crear un Módulo de Índice Completo
+---
+title: 'Crear módulo Index'
+summary: 'Paso a paso para crear un módulo de listado completo siguiendo los patrones del boilerplate (permisos, Request, Repository, Service, Controller, rutas y frontend).'
+icon: material/view-list
+tags:
+    - how-to
+    - backend
+    - frontend
+---
+
+# Crear módulo Index
 
 Esta guía explica cómo crear un módulo de índice completo siguiendo los patrones del boilerplate, basado en la implementación del módulo de Auditoría.
 

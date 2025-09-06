@@ -1,3 +1,14 @@
+---
+title: 'Testing Repositories — Guía de Pruebas'
+summary: 'Cómo ejecutar y crear tests para el sistema de repositorios: casos por método, setup de DB de pruebas, assertions y cobertura.'
+icon: material/clipboard-check-outline
+tags:
+    - how-to
+    - testing
+    - repositorios
+    - backend
+---
+
 # Testing Repositories — Guía de Pruebas
 
 Esta guía describe cómo ejecutar y crear tests para el sistema de repositorios base, incluyendo casos de prueba específicos para cada método y mejores prácticas de testing.

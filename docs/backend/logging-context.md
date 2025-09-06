@@ -1,3 +1,13 @@
+---
+title: 'Logging con Context en Laravel 12'
+summary: 'Cómo añadir request_id y user_id automáticamente a los logs con Laravel Context, integrarlo con Inertia y aplicarlo en jobs/APM.'
+icon: material/file-chart
+tags:
+    - explicación
+    - backend
+    - logging
+---
+
 # Logging con Context en Laravel 12
 
 Este documento describe el sistema de logging con context automático usando Laravel Context, incluyendo request_id y user_id para correlación y debugging mejorado.

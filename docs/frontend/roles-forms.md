@@ -1,3 +1,13 @@
+---
+title: 'Formularios de Roles'
+summary: 'Patrón de formularios de Roles con React/Inertia: validación, recargas parciales, cambios sin guardar, bloqueo optimista y accesibilidad.'
+icon: material/form-select
+tags:
+    - how-to
+    - frontend
+    - roles
+---
+
 # Roles Forms Pattern
 
 ## Overview

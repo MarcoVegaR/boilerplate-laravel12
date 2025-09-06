@@ -1,3 +1,13 @@
+---
+title: 'Autoeliminación de cuenta deshabilitada'
+summary: 'Política para impedir la autoeliminación de cuentas y pasos para re-habilitarla en caso de requerirse (rutas, permisos, UI y seguridad).'
+icon: material/account-cancel
+tags:
+    - how-to
+    - seguridad
+    - auth
+---
+
 # Cómo: Autoeliminación de cuenta deshabilitada
 
 Objetivo: documentar la política de impedir que los usuarios eliminen su propia cuenta y cómo revertirla si fuese necesario.
