@@ -36,6 +36,7 @@ nav:
   - Tutoriales:
       - Onboarding: tutorials/onboarding.md
   - Cómo hacer:
+      - Cloudflare Tunnel (dev): how-to/cloudflare-tunnel-dev.md
       - Permisos (permission-first): how-to/permisos-permission-first.md
       - Registro de usuarios deshabilitado (admin-only): how-to/registro-usuarios-deshabilitado.md
       - Autoeliminación de cuenta deshabilitada: how-to/autoeliminacion-cuenta-deshabilitada.md
