@@ -52,10 +52,10 @@ markdown_extensions:
   - pymdownx.highlight
   - md_in_html
 
-not_in_nav:
-  - CHANGELOG.md
-  - backend/show-pattern.md
-  - frontend/show-pattern.md
+not_in_nav: |
+  /CHANGELOG.md
+  /backend/show-pattern.md
+  /frontend/show-pattern.md
 
 nav:
   - Inicio: index.md
