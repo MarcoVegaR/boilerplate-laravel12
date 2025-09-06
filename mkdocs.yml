@@ -13,7 +13,6 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
-    - navigation.instant
     - navigation.top
     - content.code.copy
     - content.action.edit
@@ -52,6 +51,11 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.highlight
   - md_in_html
+
+not_in_nav:
+  - CHANGELOG.md
+  - backend/show-pattern.md
+  - frontend/show-pattern.md
 
 nav:
   - Inicio: index.md
