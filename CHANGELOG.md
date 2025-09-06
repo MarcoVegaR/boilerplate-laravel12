@@ -1,3 +1,9 @@
+# [1.3.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.2.2...v1.3.0) (2025-09-06)
+
+### Features
+
+- **docs:** add user manual and nav ([9fcbf11](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/9fcbf11635b69ed02c94692d3167d7958d2452d8))
+
 ## [1.2.2](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.2.1...v1.2.2) (2025-09-05)
 
 ### Bug Fixes
