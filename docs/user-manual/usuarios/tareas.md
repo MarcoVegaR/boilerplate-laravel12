@@ -22,7 +22,7 @@ Pasos:
 !!! note "Conflictos comunes"
 Si el email ya existe, la creación fallará. Corrige el email o edita el usuario existente.
 
-## Editar usuario y restablecer contraseña
+## Editar usuario y restablecer contraseña {#editar-usuario-y-restablecer-contraseña}
 
 Requisitos: `users.update`.
 
