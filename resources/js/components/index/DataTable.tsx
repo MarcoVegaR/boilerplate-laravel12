@@ -188,7 +188,7 @@ export function DataTable<TData>({
 
     const cellPaddingClass = density === 'compact' ? 'p-2' : 'p-3';
 
-    const hasSelection = !!table.getColumn?.('select');
+    const hasSelection = enableRowSelection;
 
     // Extract permissions
     const {

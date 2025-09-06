@@ -1,4 +1,6 @@
 import { ConfirmAlert } from '@/components/dialogs/confirm-alert';
+import { ErrorSummary } from '@/components/form/ErrorSummary';
+import { Field } from '@/components/form/Field';
 import { FieldError } from '@/components/forms/field-error';
 import { FormActions } from '@/components/forms/form-actions';
 import { FormSection } from '@/components/forms/form-section';
@@ -11,9 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { useClientValidation } from '@/hooks/useClientValidation';
+import { useFirstErrorFocus } from '@/hooks/useFirstErrorFocus';
 import AppLayout from '@/layouts/app-layout';
+import { makeRoleSchema } from '@/lib/validation/schema-role';
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ChevronDown, ChevronRight, ChevronUp, Database, FileText, Info, Lock, Search, Settings, Shield, Users } from 'lucide-react';
@@ -64,7 +69,7 @@ export interface RoleFormProps {
         permissions_ids?: number[];
         updated_at?: string;
     };
-    can: Record<string, boolean>;
+    can?: Record<string, boolean>;
     onSaved?: () => void;
 }
 
@@ -108,7 +113,7 @@ const getCategoryLabel = (category: string) => {
 };
 
 export default function RoleForm(props: RoleFormProps) {
-    const { mode, onSaved } = props; // _can is currently unused
+    const { mode, onSaved } = props;
     // Accept both 'initial' and 'model' (from Inertia HandlesForm)
     const initial = props.initial ?? props.model;
     // Resolve options from either nested 'options' or flat props
@@ -116,8 +121,12 @@ export default function RoleForm(props: RoleFormProps) {
         guards: props.options?.guards ?? props.guards ?? [],
         permissions: props.options?.permissions ?? props.permissions ?? [],
     };
+    // Safely default permissions map when not provided (e.g., embedded usage)
+    const can = props.can ?? {};
     const firstErrorRef = useRef<HTMLInputElement>(null);
     const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+    const [, setIsNavigating] = useState(false);
+    const [, setResumeNavigation] = useState<(() => void) | null>(null);
     const resumeNavRef = useRef<null | (() => void)>(null);
 
     const form = useForm<RoleFormData>({
@@ -136,13 +145,25 @@ export default function RoleForm(props: RoleFormProps) {
         permissions_ids: initial?.permissions_ids ?? [],
     };
 
-    const { clearUnsavedChanges } = useUnsavedChanges(form.data, initialData, !form.processing, {
+    const { clearUnsavedChanges } = useUnsavedChanges(form.data, initialData, true, {
+        excludeKeys: ['_token', '_method', '_version'],
         ignoreUnderscored: true,
-        onConfirm: (resume) => {
+        confirmMessage: '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.',
+        onConfirm: (resume, _cancel) => {
+            setIsNavigating(true);
+            setResumeNavigation(() => resume);
             resumeNavRef.current = resume;
-            setLeaveConfirmOpen(true);
         },
     });
+
+    // Setup client validation
+    const guards = resolvedOptions.guards?.map((g) => g.value) || ['web'];
+    const schema = makeRoleSchema(guards);
+    const { validateOnBlur, validateOnSubmit, errorsClient, mergeErrors } = useClientValidation(schema, () => form.data);
+    const { focusFirstError } = useFirstErrorFocus();
+
+    // Merge server and client errors
+    const errors = mergeErrors(form.errors, errorsClient);
 
     // Filter permissions by selected guard
     const [permSearch, setPermSearch] = useState('');
@@ -219,11 +240,12 @@ export default function RoleForm(props: RoleFormProps) {
 
         if (filteredIds.length !== form.data.permissions_ids.length) {
             form.setData('permissions_ids', filteredIds);
+            toast.info('Los permisos seleccionados se han actualizado para el nuevo guard');
         }
 
-        // Reload permissions for the new guard
+        // Reload permissions for the new guard (partial reload)
         router.reload({
-            only: ['permissions'],
+            only: ['options'],
             data: { guard_name: newGuard },
         });
     };
@@ -246,6 +268,14 @@ export default function RoleForm(props: RoleFormProps) {
     // Handle submit
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate client-side first
+        if (!validateOnSubmit()) {
+            focusFirstError(errorsClient);
+            toast.error('Por favor, corrige los errores antes de continuar');
+            return;
+        }
+
         // We are submitting (non-GET). Ensure the unsaved changes guard does not interfere
         clearUnsavedChanges();
 
@@ -271,16 +301,9 @@ export default function RoleForm(props: RoleFormProps) {
                         onSaved();
                     }
                 },
-                onError: (errors) => {
+                onError: (serverErrors) => {
                     toast.error('Error al crear el rol');
-                    // Focus first error field
-                    setTimeout(() => {
-                        const firstError = Object.keys(errors)[0];
-                        const element = document.querySelector(`[name="${firstError}"]`);
-                        if (element instanceof HTMLElement) {
-                            element.focus();
-                        }
-                    }, 100);
+                    focusFirstError(serverErrors);
                 },
             });
         } else {
@@ -295,16 +318,9 @@ export default function RoleForm(props: RoleFormProps) {
                         onSaved();
                     }
                 },
-                onError: (errors) => {
+                onError: (serverErrors) => {
                     toast.error('Error al actualizar el rol');
-                    // Focus first error field
-                    setTimeout(() => {
-                        const firstError = Object.keys(errors)[0];
-                        const element = document.querySelector(`[name="${firstError}"]`);
-                        if (element instanceof HTMLElement) {
-                            element.focus();
-                        }
-                    }, 100);
+                    focusFirstError(serverErrors);
                 },
             });
         }
@@ -385,107 +401,87 @@ export default function RoleForm(props: RoleFormProps) {
                 <div className="py-8">
                     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                         <form onSubmit={handleSubmit} className="bg-card space-y-6 rounded-2xl border p-6 shadow-sm lg:p-7">
+                            {/* Show error summary for long forms */}
+                            {Object.keys(errors).length > 0 && <ErrorSummary errors={errors} className="mb-4" />}
+
                             <FormSection title="Información básica" description="Define el nombre y el guard del rol">
                                 <div className="grid gap-4 md:grid-cols-2">
                                     {/* Name field */}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name" className="flex items-center gap-2">
-                                            Nombre del rol <span className="text-destructive">*</span>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span
-                                                        tabIndex={0}
-                                                        role="button"
-                                                        aria-label="Ayuda: nombre del rol"
-                                                        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex h-4 w-4 items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none"
-                                                    >
-                                                        <Info className="h-3 w-3" />
-                                                    </span>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="top" align="start" className="max-w-xs">
-                                                    <p>
-                                                        Nombre tal como aparecerá en el sistema (p. ej., Administrador, Editor). Debe ser único y
-                                                        claro.
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </Label>
+                                    <Field id="name" label="Nombre" required error={errors.name}>
                                         <Input
-                                            ref={form.errors.name ? firstErrorRef : null}
-                                            id="name"
                                             name="name"
                                             type="text"
                                             value={form.data.name}
                                             onChange={(e) => form.setData('name', e.target.value)}
+                                            onBlur={() => validateOnBlur('name')}
+                                            autoFocus
+                                            placeholder="Ej: Administrador"
                                             maxLength={100}
-                                            required
-                                            disabled={form.processing}
-                                            aria-invalid={!!form.errors.name}
-                                            aria-describedby={form.errors.name ? 'name-error' : undefined}
                                         />
-                                        {form.errors.name && <FieldError id="name-error" message={form.errors.name} />}
-                                    </div>
+                                    </Field>
 
                                     {/* Guard field */}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="guard_name" className="flex items-center gap-2">
-                                            Guard <span className="text-destructive">*</span>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span
-                                                        tabIndex={0}
-                                                        role="button"
-                                                        aria-label="Ayuda: guard del rol"
-                                                        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex h-4 w-4 items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none"
-                                                    >
-                                                        <Info className="h-3 w-3" />
-                                                    </span>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="top" align="start" className="max-w-xs">
-                                                    <p>
-                                                        Ámbito de autenticación del rol. "web" para usuarios del sistema; "api" para integraciones o
-                                                        clientes externos.
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </Label>
-                                        <Select value={form.data.guard_name} onValueChange={handleGuardChange} disabled={form.processing}>
-                                            <SelectTrigger
-                                                id="guard_name"
-                                                aria-invalid={!!form.errors.guard_name}
-                                                aria-describedby={form.errors.guard_name ? 'guard-error' : undefined}
-                                            >
+                                    <Field
+                                        id="guard_name"
+                                        label="Guard"
+                                        required
+                                        error={errors.guard_name}
+                                        hint="Define el contexto de autenticación del rol"
+                                    >
+                                        <Select
+                                            value={form.data.guard_name}
+                                            onValueChange={(value) => {
+                                                handleGuardChange(value);
+                                                validateOnBlur('guard_name');
+                                            }}
+                                        >
+                                            <SelectTrigger>
                                                 <SelectValue placeholder="Selecciona un guard" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {resolvedOptions.guards.map((guard) => (
+                                                {(resolvedOptions.guards || []).map((guard) => (
                                                     <SelectItem key={guard.value} value={guard.value}>
                                                         {guard.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {form.errors.guard_name && <FieldError id="guard-error" message={form.errors.guard_name} />}
-                                    </div>
+                                    </Field>
                                 </div>
 
                                 {/* Active status (only in edit) */}
                                 {mode === 'edit' && (
-                                    <>
+                                    <Field id="is_active" label="Estado activo" required error={errors.is_active} className="md:col-span-2">
                                         <div className="flex items-center space-x-2">
                                             <Switch
-                                                id="is_active"
+                                                name="is_active"
                                                 checked={form.data.is_active}
-                                                onCheckedChange={(checked) => form.setData('is_active', checked)}
+                                                onCheckedChange={(checked) => {
+                                                    form.setData('is_active', checked);
+                                                    validateOnBlur('is_active');
+                                                }}
                                                 disabled={form.processing}
                                                 aria-describedby="active-description"
                                             />
                                             <Label htmlFor="is_active" className="cursor-pointer">
-                                                Rol activo
+                                                {form.data.is_active ? 'Rol activo' : 'Rol inactivo'}
                                             </Label>
                                         </div>
-                                        <p id="active-description" className="text-muted-foreground text-sm">
-                                            Los roles inactivos no pueden ser asignados a nuevos usuarios
+                                    </Field>
+                                )}
+
+                                {/* Permission and version info */}
+                                {mode === 'edit' && can['roles.setActive'] === false && (
+                                    <p className="text-muted-foreground mt-2 text-sm">
+                                        <Info className="mr-1 inline h-3 w-3" />
+                                        No tienes permisos para cambiar el estado del rol
+                                    </p>
+                                )}
+                                {mode === 'edit' && initial?.updated_at && (
+                                    <>
+                                        <input type="hidden" name="_version" value={initial.updated_at} />
+                                        <p className="text-muted-foreground mt-2 text-xs">
+                                            Última actualización: {new Date(initial.updated_at).toLocaleString('es-ES')}
                                         </p>
                                     </>
                                 )}
@@ -617,7 +613,7 @@ export default function RoleForm(props: RoleFormProps) {
                                         </Accordion>
                                     </div>
                                 )}
-                                {form.errors.permissions_ids && <FieldError message={form.errors.permissions_ids} />}
+                                {errors.permissions_ids && <FieldError message={errors.permissions_ids} />}
                             </FormSection>
                             <p className="text-muted-foreground text-xs">
                                 <span className="text-destructive">*</span> Campo obligatorio

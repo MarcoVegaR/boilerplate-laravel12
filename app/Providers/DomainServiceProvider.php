@@ -56,6 +56,11 @@ class DomainServiceProvider extends ServiceProvider
             \App\Contracts\Repositories\RoleRepositoryInterface::class,
             \App\Repositories\RoleRepository::class
         );
+
+        $this->app->bind(
+            \App\Contracts\Repositories\AuditRepositoryInterface::class,
+            \App\Repositories\AuditRepository::class
+        );
     }
 
     /**
@@ -84,10 +89,23 @@ class DomainServiceProvider extends ServiceProvider
             \App\Services\RoleService::class
         );
 
+        $this->app->bind(
+            \App\Contracts\Services\AuditServiceInterface::class,
+            \App\Services\AuditService::class
+        );
+
         // Register RoleService with its dependencies
         $this->app->bind(\App\Services\RoleService::class, function ($app) {
             return new \App\Services\RoleService(
                 $app->make(\App\Contracts\Repositories\RoleRepositoryInterface::class),
+                $app
+            );
+        });
+
+        // Register AuditService with its dependencies
+        $this->app->bind(\App\Services\AuditService::class, function ($app) {
+            return new \App\Services\AuditService(
+                $app->make(\App\Contracts\Repositories\AuditRepositoryInterface::class),
                 $app
             );
         });

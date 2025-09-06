@@ -53,16 +53,33 @@ export function RoleFilters({ value, onChange, availablePermissions = [] }: Role
         });
     };
 
+    // Helpers to handle YYYY-MM-DD safely in local time to avoid timezone shifts
+    const parseYMD = (s?: string): Date | undefined => {
+        if (!s) return undefined;
+        const [y, m, d] = s.split('-').map((n) => parseInt(n, 10));
+        if (!y || !m || !d) return undefined;
+        return new Date(y, m - 1, d);
+    };
+
+    const toYMD = (d?: Date): string | undefined => {
+        if (!d) return undefined;
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
     const handleDateRangeChange = (val: DatePickerValue) => {
         const range = val as DateRange | undefined;
         setLocalFilters({
             ...localFilters,
-            created_between: range
-                ? {
-                      from: range.from?.toISOString().split('T')[0],
-                      to: range.to?.toISOString().split('T')[0],
-                  }
-                : undefined,
+            created_between:
+                range && (range.from || range.to)
+                    ? {
+                          from: toYMD(range.from),
+                          to: toYMD(range.to),
+                      }
+                    : undefined,
         });
     };
 
@@ -94,8 +111,8 @@ export function RoleFilters({ value, onChange, availablePermissions = [] }: Role
     // Convert string dates to Date objects for DatePicker
     const dateRange: DateRange | undefined = localFilters.created_between
         ? {
-              from: localFilters.created_between.from ? new Date(localFilters.created_between.from) : undefined,
-              to: localFilters.created_between.to ? new Date(localFilters.created_between.to) : undefined,
+              from: parseYMD(localFilters.created_between.from),
+              to: parseYMD(localFilters.created_between.to),
           }
         : undefined;
 

@@ -3,7 +3,7 @@
 return [
 
     'models' => [
-        'permission' => Spatie\Permission\Models\Permission::class,
+        'permission' => App\Models\Permission::class,
         'role' => App\Models\Role::class,
     ],
 

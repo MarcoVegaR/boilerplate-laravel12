@@ -10,6 +10,7 @@ declare module '@tanstack/react-table' {
         // Export configuration
         exportable?: boolean;
         exportHeader?: string;
+        exportLabel?: string; // legacy alias used in some tables
         exportWidth?: number;
 
         // Formatting functions
@@ -24,6 +25,9 @@ declare module '@tanstack/react-table' {
         sortable?: boolean;
         filterable?: boolean;
         hideable?: boolean;
+
+        // Server-side mapping
+        accessorKeyServer?: string;
 
         // Styling hints
         align?: 'left' | 'center' | 'right';

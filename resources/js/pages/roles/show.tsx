@@ -1,10 +1,12 @@
 import { SectionNav } from '@/components/show-base/SectionNav';
 import { ShowLayout } from '@/components/show-base/ShowLayout';
 import { ShowSection } from '@/components/show-base/ShowSection';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useShow } from '@/hooks/use-show';
@@ -12,8 +14,27 @@ import AppLayout from '@/layouts/app-layout';
 import { deleteRow } from '@/lib/delete-service';
 import type { PageProps } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ChevronRight, Hash, Key, Pencil, Power, Shield, Trash2, Users } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import {
+    ArrowLeft,
+    Calendar,
+    ChevronDown,
+    ChevronRight,
+    ChevronUp,
+    Database,
+    FileText,
+    Hash,
+    Key,
+    Lock,
+    Pencil,
+    Power,
+    Search,
+    Settings,
+    Shield,
+    Trash2,
+    Users,
+} from 'lucide-react';
+import type React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 interface Permission {
     id: number;
@@ -58,6 +79,10 @@ export default function RoleShow({ item: initialItem, meta: initialMeta, auth }:
         initialMeta,
     });
 
+    // Search/filter and accordion expansion state for permissions UI
+    const [permSearch, setPermSearch] = useState('');
+    const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+
     // Load permissions when tab is activated
     const handleTabChange = useCallback(
         (value: string) => {
@@ -81,6 +106,74 @@ export default function RoleShow({ item: initialItem, meta: initialMeta, auth }:
         ],
         [],
     );
+
+    // Icon mapping for permission categories (mirrors RoleForm)
+    const categoryIcons: Record<string, React.ElementType> = useMemo(
+        () => ({
+            roles: Shield,
+            users: Users,
+            settings: Settings,
+            permissions: Lock,
+            audit: FileText,
+            default: Database,
+        }),
+        [],
+    );
+
+    const categoryIconColors: Record<string, string> = useMemo(
+        () => ({
+            roles: 'text-blue-500 dark:text-blue-400',
+            users: 'text-purple-500 dark:text-purple-400',
+            settings: 'text-green-600 dark:text-green-400',
+            permissions: 'text-amber-500 dark:text-amber-400',
+            audit: 'text-rose-500 dark:text-rose-400',
+            default: 'text-slate-500 dark:text-slate-400',
+        }),
+        [],
+    );
+
+    const getCategoryIcon = useCallback((category: string) => categoryIcons[category.toLowerCase()] || categoryIcons.default, [categoryIcons]);
+    const getCategoryColor = useCallback(
+        (category: string) => categoryIconColors[category.toLowerCase()] || categoryIconColors.default,
+        [categoryIconColors],
+    );
+
+    // Category label translations (Spanish)
+    const categoryLabels: Record<string, string> = {
+        settings: 'Configuración',
+        users: 'Usuarios',
+    };
+    const getCategoryLabel = (category: string) => {
+        const key = category.toLowerCase();
+        return categoryLabels[key] ?? category;
+    };
+
+    // Group permissions (assigned to role) by category with client-side search
+    const groupedPermissions = useMemo(() => {
+        const assigned = (item.permissions || []).filter((p) =>
+            permSearch.trim() === '' ? true : ((p.description ?? p.name) as string).toLowerCase().includes(permSearch.toLowerCase()),
+        );
+
+        const groups = new Map<string, Permission[]>();
+        assigned.forEach((permission) => {
+            const category = permission.name.split('.')[0] || 'general';
+            if (!groups.has(category)) groups.set(category, []);
+            groups.get(category)!.push(permission);
+        });
+
+        return Array.from(groups.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([category, perms]) => ({
+                category,
+                permissions: perms.sort((a, b) => ((a.description ?? a.name) as string).localeCompare((b.description ?? b.name) as string)),
+                icon: getCategoryIcon(category),
+                color: getCategoryColor(category),
+                totalCount: perms.length,
+            }));
+    }, [item.permissions, permSearch, getCategoryIcon, getCategoryColor]);
+
+    const handleExpandAll = () => setExpandedGroups(groupedPermissions.map((g) => g.category));
+    const handleCollapseAll = () => setExpandedGroups([]);
 
     // No breadcrumbs memo: render directly with UI components to match index design
 
@@ -355,18 +448,88 @@ export default function RoleShow({ item: initialItem, meta: initialMeta, auth }:
                             ) : item.permissions && item.permissions.length > 0 ? (
                                 <Card>
                                     <CardContent className="pt-6">
-                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                                            {item.permissions.map((permission) => (
-                                                <div
-                                                    key={permission.id}
-                                                    className="hover:bg-muted flex items-center gap-2 rounded-md p-2 transition-colors"
-                                                >
-                                                    <Key className="h-3 w-3 flex-shrink-0 text-amber-500 dark:text-amber-400" />
-                                                    <span className="truncate text-sm" title={(permission.description ?? permission.name) as string}>
-                                                        {permission.description ?? permission.name}
-                                                    </span>
+                                        <div className="space-y-6">
+                                            {/* Search and controls */}
+                                            <div className="sticky top-0 z-10 -mx-4 -mt-4 bg-white p-4 dark:bg-gray-800">
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                                                        <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs font-medium">
+                                                            {groupedPermissions.reduce((acc, g) => acc + g.totalCount, 0)}
+                                                        </Badge>
+                                                        <span>permisos</span>
+                                                        <span aria-hidden="true">·</span>
+                                                        <Button type="button" variant="ghost" size="sm" onClick={handleExpandAll} className="gap-1">
+                                                            <ChevronDown className="h-3 w-3" />
+                                                            Expandir todos
+                                                        </Button>
+                                                        <span aria-hidden="true">·</span>
+                                                        <Button type="button" variant="ghost" size="sm" onClick={handleCollapseAll} className="gap-1">
+                                                            <ChevronUp className="h-3 w-3" />
+                                                            Colapsar todos
+                                                        </Button>
+                                                    </div>
+                                                    <div className="relative w-full sm:w-72">
+                                                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                                        <Input
+                                                            placeholder="Buscar permisos"
+                                                            value={permSearch}
+                                                            onChange={(e) => setPermSearch(e.target.value)}
+                                                            className="pl-9"
+                                                        />
+                                                    </div>
                                                 </div>
-                                            ))}
+                                            </div>
+
+                                            {/* Grouped permissions accordion */}
+                                            <Accordion
+                                                type="multiple"
+                                                value={expandedGroups}
+                                                onValueChange={setExpandedGroups}
+                                                className="w-full space-y-2"
+                                            >
+                                                {groupedPermissions.map((group) => {
+                                                    const Icon = group.icon as React.ElementType;
+                                                    return (
+                                                        <AccordionItem
+                                                            key={group.category}
+                                                            value={group.category}
+                                                            className="bg-card rounded-xl border px-4 shadow-sm"
+                                                        >
+                                                            <AccordionTrigger className="hover:no-underline">
+                                                                <div className="flex w-full items-center justify-between pr-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <Icon className={`h-4 w-4 ${group.color}`} />
+                                                                        <span className="text-sm font-medium capitalize">
+                                                                            {getCategoryLabel(group.category)}
+                                                                        </span>
+                                                                        <Badge
+                                                                            variant="secondary"
+                                                                            className="ml-2 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                                                        >
+                                                                            {group.totalCount}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
+                                                            </AccordionTrigger>
+                                                            <AccordionContent>
+                                                                <div className="grid gap-3 pb-2 sm:grid-cols-2">
+                                                                    {group.permissions.map((permission) => (
+                                                                        <div
+                                                                            key={permission.id}
+                                                                            className="hover:bg-muted flex items-start gap-2 rounded-md p-2"
+                                                                        >
+                                                                            <Key className="mt-0.5 h-3 w-3 flex-shrink-0 text-amber-500 dark:text-amber-400" />
+                                                                            <span className="text-sm leading-relaxed">
+                                                                                {(permission.description ?? permission.name) as string}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </AccordionContent>
+                                                        </AccordionItem>
+                                                    );
+                                                })}
+                                            </Accordion>
                                         </div>
                                     </CardContent>
                                 </Card>

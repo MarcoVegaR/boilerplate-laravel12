@@ -24,13 +24,17 @@ class CsvExporter implements ExporterInterface
         $response = new StreamedResponse(function () use ($rows, $columns) {
             $handle = fopen('php://output', 'w');
 
-            // Write header row with column names (not keys)
-            fputcsv($handle, array_values($columns));
+            // Determine column keys and header labels (support list or associative)
+            $columnKeys = array_is_list($columns) ? $columns : array_keys($columns);
+            $headerLabels = array_is_list($columns) ? $columns : array_values($columns);
+
+            // Write header row with labels
+            fputcsv($handle, $headerLabels);
 
             // Write data rows
             foreach ($rows as $row) {
                 $csvRow = [];
-                foreach (array_keys($columns) as $key) {
+                foreach ($columnKeys as $key) {
                     $value = $row[$key] ?? '';
                     // Format boolean values for better readability
                     if (is_bool($value)) {

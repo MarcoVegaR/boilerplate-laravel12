@@ -140,10 +140,13 @@ trait HandlesIndexAndExport
 
         try {
             // Create a simple ListQuery DTO directly for export to avoid validation issues
+            // Aceptar tanto per_page como perPage por compatibilidad con frontend
+            $perPage = (int) ($request->get('per_page') ?? $request->get('perPage') ?? 15);
+
             $dto = new \App\DTO\ListQuery(
                 q: $request->get('q'),
                 page: (int) $request->get('page', 1),
-                perPage: (int) $request->get('perPage', 15),
+                perPage: $perPage,
                 sort: $request->get('sort', 'id'),
                 dir: $request->get('dir', 'asc'),
                 filters: $request->get('filters', [])

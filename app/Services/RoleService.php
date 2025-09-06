@@ -151,10 +151,26 @@ class RoleService extends BaseService implements RoleServiceInterface
      */
     protected function afterCreate(Model $model, array $attributes): void
     {
-        if (isset($attributes['permissions_ids'])) {
-            if ($model instanceof \Spatie\Permission\Models\Role) {
-                $model->syncPermissions($attributes['permissions_ids']);
-            }
+        if ($model instanceof \App\Models\Role) {
+            $newIds = isset($attributes['permissions_ids']) ? (array) $attributes['permissions_ids'] : [];
+
+            // Before: empty on create
+            $before = [];
+            // Sync and compute after
+            $model->syncPermissions($newIds);
+            $after = $model->permissions->pluck('id')->map(fn ($v) => (int) $v)->values()->all();
+
+            // Emit custom audit event for permission sync
+            /** @var \App\Models\Role $auditable */
+            $auditable = $model;
+            $auditable->auditEvent = 'permissions_sync';
+            $auditable->auditCustomOld = ['permissions_ids' => $before];
+            $auditable->auditCustomNew = ['permissions_ids' => $after];
+            $auditable->isCustomEvent = true;
+            event(new \OwenIt\Auditing\Events\AuditCustom($auditable));
+            // reset temp state
+            $auditable->auditCustomOld = $auditable->auditCustomNew = [];
+            $auditable->isCustomEvent = false;
         }
 
         // Clear permission cache after changes
@@ -169,10 +185,25 @@ class RoleService extends BaseService implements RoleServiceInterface
      */
     protected function afterUpdate(Model $model, array $attributes): void
     {
-        // Only sync permissions if the key exists (even if empty array)
-        if (array_key_exists('permissions_ids', $attributes)) {
-            if ($model instanceof \Spatie\Permission\Models\Role) {
-                $model->syncPermissions($attributes['permissions_ids'] ?? []);
+        if ($model instanceof \App\Models\Role) {
+            // Only handle audit when permissions key was part of the payload
+            if (array_key_exists('permissions_ids', $attributes)) {
+                $before = $model->permissions->pluck('id')->map(fn ($v) => (int) $v)->values()->all();
+                $newIds = (array) ($attributes['permissions_ids'] ?? []);
+                $model->syncPermissions($newIds);
+                $after = $model->permissions->pluck('id')->map(fn ($v) => (int) $v)->values()->all();
+
+                // Emit custom audit event for permission sync
+                /** @var \App\Models\Role $auditable */
+                $auditable = $model;
+                $auditable->auditEvent = 'permissions_sync';
+                $auditable->auditCustomOld = ['permissions_ids' => $before];
+                $auditable->auditCustomNew = ['permissions_ids' => $after];
+                $auditable->isCustomEvent = true;
+                event(new \OwenIt\Auditing\Events\AuditCustom($auditable));
+                // reset temp state
+                $auditable->auditCustomOld = $auditable->auditCustomNew = [];
+                $auditable->isCustomEvent = false;
             }
         }
 
