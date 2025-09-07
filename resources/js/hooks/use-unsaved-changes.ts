@@ -95,9 +95,13 @@ export function useUnsavedChanges<T extends Record<string, unknown>>(
             // Best practices:
             // - Do NOT warn on non-GET methods (POST/PUT/PATCH/DELETE are form submits)
             // - Do NOT warn on same-URL GET reloads (e.g., router.reload / partial reloads)
+            // - Do NOT warn on prefetch/async intent (hover prefetch should not block)
             const isGet = (visit.method ?? 'get').toLowerCase() === 'get';
             const sameUrl = isSameUrl(visit.url);
-            if (!isGet || sameUrl) {
+            const visitMeta = visit as unknown as Record<string, unknown>;
+            const isPrefetch = Boolean(visitMeta['prefetch']);
+            const isAsync = Boolean(visitMeta['async']);
+            if (!isGet || sameUrl || isPrefetch || isAsync) {
                 return; // allow
             }
 

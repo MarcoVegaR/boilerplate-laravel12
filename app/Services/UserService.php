@@ -8,6 +8,7 @@ use App\Contracts\Services\UserServiceInterface;
 use App\DTO\ListQuery;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Service implementation for User operations.
@@ -106,6 +107,43 @@ class UserService extends BaseService implements UserServiceInterface
     protected function repoModelClass(): string
     {
         return User::class;
+    }
+
+    /**
+     * Before creating a user: hash password if provided and drop confirmation.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function beforeCreate(array &$attributes): void
+    {
+        if (array_key_exists('password', $attributes)) {
+            $pwd = $attributes['password'];
+            if ($pwd === null || $pwd === '') {
+                unset($attributes['password']);
+            } else {
+                $attributes['password'] = Hash::make((string) $pwd);
+            }
+        }
+        unset($attributes['password_confirmation']);
+    }
+
+    /**
+     * Before updating a user: hash password if provided; if empty, do not update it.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function beforeUpdate(Model $model, array &$attributes): void
+    {
+        if (array_key_exists('password', $attributes)) {
+            $pwd = $attributes['password'];
+            if ($pwd === null || $pwd === '') {
+                // Do not alter password if no value provided
+                unset($attributes['password']);
+            } else {
+                $attributes['password'] = Hash::make((string) $pwd);
+            }
+        }
+        unset($attributes['password_confirmation']);
     }
 
     /**

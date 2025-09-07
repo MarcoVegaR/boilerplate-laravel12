@@ -1,13 +1,13 @@
 import { ConfirmAlert } from '@/components/dialogs/confirm-alert';
 import { DataTable } from '@/components/index/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { resourceCrumbs } from '@/lib/breadcrumbs';
 import type { FormDataConvertible, PageProps } from '@inertiajs/core';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ColumnFiltersState, RowSelectionState, SortingState, VisibilityState } from '@tanstack/react-table';
-import { ChevronRight, Plus, Shield } from 'lucide-react';
+import { Plus, Shield } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { columns, TRole } from './columns';
@@ -354,32 +354,6 @@ export default function RolesIndex() {
             <Head title="Roles - Sistema de Gestión" />
 
             <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
-                {/* Header Section with Breadcrumbs */}
-                <div className="border-b border-gray-200 bg-white/50 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="py-4">
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem>
-                                        <Link
-                                            href="/dashboard"
-                                            className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        >
-                                            Inicio
-                                        </Link>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator>
-                                        <ChevronRight className="h-3 w-3 text-gray-400" />
-                                    </BreadcrumbSeparator>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">Roles</BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Main Content */}
                 <div className="py-8">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -565,4 +539,4 @@ export default function RolesIndex() {
     );
 }
 
-RolesIndex.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
+RolesIndex.layout = (page: React.ReactNode) => <AppLayout breadcrumbs={resourceCrumbs('roles', 'index')}>{page}</AppLayout>;

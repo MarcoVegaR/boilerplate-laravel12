@@ -12,10 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Ajustes de contraseña',
-        href: '/settings/password',
-    },
+    { title: 'Inicio', href: '/dashboard' },
+    { title: 'Ajustes', href: '/settings' },
+    { title: 'Ajustes de contraseña', href: '/settings/password' },
 ];
 
 export default function Password() {

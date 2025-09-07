@@ -31,6 +31,22 @@ export function makeUserSchema(mode: 'create' | 'edit') {
             type WithPasswords = { password?: string; password_confirmation?: string };
             const { password, password_confirmation: confirmation } = data as WithPasswords;
 
+            const complexityError = (path: (string | number)[] = ['password']) =>
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'La contraseña debe incluir al menos una mayúscula, una minúscula, un dígito y un símbolo.',
+                    path,
+                });
+
+            const meetsComplexity = (pwd: string) => {
+                const hasUpper = /[A-Z]/.test(pwd);
+                const hasLower = /[a-z]/.test(pwd);
+                const hasDigit = /\d/.test(pwd);
+                // Require at least one symbol (exclude whitespace)
+                const hasSymbol = /[^A-Za-z0-9\s]/.test(pwd);
+                return hasUpper && hasLower && hasDigit && hasSymbol;
+            };
+
             // In create, password must be present and match confirmation
             if (mode === 'create') {
                 if (!password || password.length < MIN_PASSWORD) {
@@ -39,6 +55,9 @@ export function makeUserSchema(mode: 'create' | 'edit') {
                         message: MESSAGES.min('Contraseña', MIN_PASSWORD),
                         path: ['password'],
                     });
+                }
+                if (password && !meetsComplexity(password)) {
+                    complexityError(['password']);
                 }
                 if ((password || '') !== (confirmation || '')) {
                     ctx.addIssue({
@@ -51,6 +70,16 @@ export function makeUserSchema(mode: 'create' | 'edit') {
 
             // In edit, only validate confirmation if password provided
             if (mode === 'edit' && password && password.length > 0) {
+                if (password.length < MIN_PASSWORD) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: MESSAGES.min('Contraseña', MIN_PASSWORD),
+                        path: ['password'],
+                    });
+                }
+                if (!meetsComplexity(password)) {
+                    complexityError(['password']);
+                }
                 if ((password || '') !== (confirmation || '')) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,

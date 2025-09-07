@@ -1,27 +1,29 @@
 import { ConfirmAlert } from '@/components/dialogs/confirm-alert';
 import { ErrorSummary } from '@/components/form/ErrorSummary';
 import { Field } from '@/components/form/Field';
+import { ActiveField } from '@/components/forms/active-field';
 import { FieldError } from '@/components/forms/field-error';
 import { FormActions } from '@/components/forms/form-actions';
 import { FormSection } from '@/components/forms/form-section';
+import { FormVersion } from '@/components/forms/form-version';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { useClientValidation } from '@/hooks/useClientValidation';
 import { useFirstErrorFocus } from '@/hooks/useFirstErrorFocus';
 import AppLayout from '@/layouts/app-layout';
+import { resourceCrumbs } from '@/lib/breadcrumbs';
+import { sanitizeIds } from '@/lib/utils';
 import { makeRoleSchema } from '@/lib/validation/schema-role';
 import type { FormDataConvertible } from '@inertiajs/core';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ChevronDown, ChevronRight, ChevronUp, Database, FileText, Info, Lock, Search, Settings, Shield, Users } from 'lucide-react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { ChevronDown, ChevronUp, Database, FileText, Info, Lock, Search, Settings, Shield, Users } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -125,8 +127,8 @@ export default function RoleForm(props: RoleFormProps) {
     const can = props.can ?? {};
     const firstErrorRef = useRef<HTMLInputElement>(null);
     const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
-    const [, setIsNavigating] = useState(false);
-    const [, setResumeNavigation] = useState<(() => void) | null>(null);
+    const [, _setIsNavigating] = useState(false);
+    const [, _setResumeNavigation] = useState<(() => void) | null>(null);
     const resumeNavRef = useRef<null | (() => void)>(null);
 
     const form = useForm<RoleFormData>({
@@ -145,14 +147,14 @@ export default function RoleForm(props: RoleFormProps) {
         permissions_ids: initial?.permissions_ids ?? [],
     };
 
-    const { clearUnsavedChanges } = useUnsavedChanges(form.data, initialData, true, {
+    const { hasUnsavedChanges, clearUnsavedChanges } = useUnsavedChanges(form.data, initialData, true, {
         excludeKeys: ['_token', '_method', '_version'],
         ignoreUnderscored: true,
-        confirmMessage: '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.',
-        onConfirm: (resume, _cancel) => {
-            setIsNavigating(true);
-            setResumeNavigation(() => resume);
+        confirmMessage: '¿Estás seguro de salir? Los cambios no guardados se perderán.',
+        onConfirm: (resume) => {
+            // Store and open our design-system ConfirmAlert
             resumeNavRef.current = resume;
+            setLeaveConfirmOpen(true);
         },
     });
 
@@ -269,6 +271,11 @@ export default function RoleForm(props: RoleFormProps) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (mode === 'edit' && !hasUnsavedChanges) {
+            toast.info('No hay cambios para actualizar');
+            return;
+        }
+
         // Validate client-side first
         if (!validateOnSubmit()) {
             focusFirstError(errorsClient);
@@ -280,13 +287,7 @@ export default function RoleForm(props: RoleFormProps) {
         clearUnsavedChanges();
 
         // Frontend sanitization: ensure permissions_ids are valid integers and deduplicated
-        const sanitizedPermissions = Array.from(
-            new Set(
-                (form.data.permissions_ids || [])
-                    .map((v) => (typeof v === 'string' ? Number(v) : v))
-                    .filter((v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0),
-            ),
-        );
+        const sanitizedPermissions = sanitizeIds((form.data.permissions_ids || []) as Array<number | string>).filter((v) => v >= 0);
         // Use transform so we don't rely on async state updates before submit
         form.transform((data) => ({
             ...data,
@@ -338,66 +339,6 @@ export default function RoleForm(props: RoleFormProps) {
             <Head title={mode === 'create' ? 'Crear Rol' : 'Editar Rol'} />
 
             <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
-                {/* Breadcrumb Ribbon (match index/show style) */}
-                <div className="border-b border-gray-200 bg-white/50 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="py-4">
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem>
-                                        <Link
-                                            href="/dashboard"
-                                            className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        >
-                                            Inicio
-                                        </Link>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator>
-                                        <ChevronRight className="h-3 w-3 text-gray-400" />
-                                    </BreadcrumbSeparator>
-                                    <BreadcrumbItem>
-                                        <Link
-                                            href="/roles"
-                                            className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        >
-                                            Roles
-                                        </Link>
-                                    </BreadcrumbItem>
-                                    {mode === 'create' ? (
-                                        <>
-                                            <BreadcrumbSeparator>
-                                                <ChevronRight className="h-3 w-3 text-gray-400" />
-                                            </BreadcrumbSeparator>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">Crear</BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <BreadcrumbSeparator>
-                                                <ChevronRight className="h-3 w-3 text-gray-400" />
-                                            </BreadcrumbSeparator>
-                                            <BreadcrumbItem>
-                                                <Link
-                                                    href={route('roles.show', initial?.id)}
-                                                    className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                >
-                                                    {initial?.name ?? 'Rol'}
-                                                </Link>
-                                            </BreadcrumbItem>
-                                            <BreadcrumbSeparator>
-                                                <ChevronRight className="h-3 w-3 text-gray-400" />
-                                            </BreadcrumbSeparator>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">Editar</BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </>
-                                    )}
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
-                    </div>
-                </div>
                 <div className="py-8">
                     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                         <form onSubmit={handleSubmit} className="bg-card space-y-6 rounded-2xl border p-6 shadow-sm lg:p-7">
@@ -407,7 +348,7 @@ export default function RoleForm(props: RoleFormProps) {
                             <FormSection title="Información básica" description="Define el nombre y el guard del rol">
                                 <div className="grid gap-4 md:grid-cols-2">
                                     {/* Name field */}
-                                    <Field id="name" label="Nombre" required error={errors.name}>
+                                    <Field id="name" label="Nombre" required error={errors.name} hint="Ejemplo: Administrador">
                                         <Input
                                             name="name"
                                             type="text"
@@ -415,7 +356,6 @@ export default function RoleForm(props: RoleFormProps) {
                                             onChange={(e) => form.setData('name', e.target.value)}
                                             onBlur={() => validateOnBlur('name')}
                                             autoFocus
-                                            placeholder="Ej: Administrador"
                                             maxLength={100}
                                         />
                                     </Field>
@@ -452,21 +392,17 @@ export default function RoleForm(props: RoleFormProps) {
                                 {/* Active status (only in edit) */}
                                 {mode === 'edit' && (
                                     <Field id="is_active" label="Estado activo" required error={errors.is_active} className="md:col-span-2">
-                                        <div className="flex items-center space-x-2">
-                                            <Switch
-                                                name="is_active"
-                                                checked={form.data.is_active}
-                                                onCheckedChange={(checked) => {
-                                                    form.setData('is_active', checked);
-                                                    validateOnBlur('is_active');
-                                                }}
-                                                disabled={form.processing}
-                                                aria-describedby="active-description"
-                                            />
-                                            <Label htmlFor="is_active" className="cursor-pointer">
-                                                {form.data.is_active ? 'Rol activo' : 'Rol inactivo'}
-                                            </Label>
-                                        </div>
+                                        <ActiveField
+                                            checked={form.data.is_active}
+                                            onChange={(v) => {
+                                                form.setData('is_active', v);
+                                                validateOnBlur('is_active');
+                                            }}
+                                            canToggle={can['roles.setActive'] !== false}
+                                            activeLabel="Rol activo"
+                                            inactiveLabel="Rol inactivo"
+                                            permissionHint="No tienes permisos para cambiar el estado del rol"
+                                        />
                                     </Field>
                                 )}
 
@@ -477,14 +413,7 @@ export default function RoleForm(props: RoleFormProps) {
                                         No tienes permisos para cambiar el estado del rol
                                     </p>
                                 )}
-                                {mode === 'edit' && initial?.updated_at && (
-                                    <>
-                                        <input type="hidden" name="_version" value={initial.updated_at} />
-                                        <p className="text-muted-foreground mt-2 text-xs">
-                                            Última actualización: {new Date(initial.updated_at).toLocaleString('es-ES')}
-                                        </p>
-                                    </>
-                                )}
+                                {mode === 'edit' && <FormVersion updatedAt={initial?.updated_at} version={initial?.updated_at ?? null} />}
                             </FormSection>
 
                             <FormSection title="Permisos" description="Asigna los permisos específicos que tendrá este rol en el sistema">
@@ -505,12 +434,26 @@ export default function RoleForm(props: RoleFormProps) {
                                                     </Badge>
                                                     <span>seleccionados</span>
                                                     <span aria-hidden="true">·</span>
-                                                    <Button type="button" variant="ghost" size="sm" onClick={handleExpandAll} className="gap-1">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={handleExpandAll}
+                                                        className="gap-1"
+                                                        title="Expandir todos los grupos"
+                                                    >
                                                         <ChevronDown className="h-3 w-3" />
                                                         Expandir todos
                                                     </Button>
                                                     <span aria-hidden="true">·</span>
-                                                    <Button type="button" variant="ghost" size="sm" onClick={handleCollapseAll} className="gap-1">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={handleCollapseAll}
+                                                        className="gap-1"
+                                                        title="Colapsar todos los grupos"
+                                                    >
                                                         <ChevronUp className="h-3 w-3" />
                                                         Colapsar todos
                                                     </Button>
@@ -552,7 +495,19 @@ export default function RoleForm(props: RoleFormProps) {
                                                         <AccordionTrigger className="hover:no-underline">
                                                             <div className="flex w-full items-center justify-between pr-4">
                                                                 <div className="flex items-center gap-3">
-                                                                    <Icon className={`h-4 w-4 ${group.color}`} />
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <span className="inline-flex">
+                                                                                <Icon className={`h-4 w-4 ${group.color}`} />
+                                                                            </span>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <span className="text-xs">
+                                                                                {getCategoryLabel(group.category)} · {group.selectedCount} /{' '}
+                                                                                {group.totalCount} seleccionados
+                                                                            </span>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
                                                                     <span className="text-sm font-medium capitalize">
                                                                         {getCategoryLabel(group.category)}
                                                                     </span>
@@ -621,6 +576,7 @@ export default function RoleForm(props: RoleFormProps) {
                             <FormActions
                                 onCancel={handleCancel}
                                 isSubmitting={form.processing}
+                                isDirty={hasUnsavedChanges}
                                 submitText={mode === 'create' ? 'Crear rol' : 'Actualizar rol'}
                             />
                         </form>
@@ -637,10 +593,10 @@ export default function RoleForm(props: RoleFormProps) {
                         resumeNavRef.current = null;
                     }
                 }}
-                title="Tienes cambios sin guardar"
-                description="Si sales ahora, perderás los cambios no guardados."
+                title="Descartar cambios"
+                description="Tienes cambios sin guardar. ¿Deseas salir de todas formas?"
                 confirmLabel="Salir sin guardar"
-                cancelLabel="Cancelar"
+                cancelLabel="Seguir editando"
                 confirmDestructive
                 onConfirm={() => {
                     setLeaveConfirmOpen(false);
@@ -653,6 +609,16 @@ export default function RoleForm(props: RoleFormProps) {
     );
 }
 
-// Apply the App layout so the sidebar/header are present when this component is used as an Inertia page
-// This mirrors the pattern used in roles/index.tsx
-RoleForm.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
+// Apply App layout with header breadcrumbs
+// Compute breadcrumbs from page props (mode + initial/model)
+type InertiaPageWithProps<P> = React.ReactElement & { props: P };
+
+RoleForm.layout = (
+    page: InertiaPageWithProps<{ mode?: 'create' | 'edit'; initial?: { id?: number; name?: string }; model?: { id?: number; name?: string } }>,
+) => {
+    const props = page.props ?? {};
+    const mode = (props?.mode as 'create' | 'edit') ?? 'create';
+    const initial = props?.initial ?? props?.model ?? {};
+    const crumbs = mode === 'edit' ? resourceCrumbs('roles', 'edit', { id: initial?.id, name: initial?.name }) : resourceCrumbs('roles', 'create');
+    return <AppLayout breadcrumbs={crumbs}>{page}</AppLayout>;
+};

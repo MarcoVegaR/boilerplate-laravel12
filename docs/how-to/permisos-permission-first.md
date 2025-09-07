@@ -58,13 +58,43 @@ php artisan db:seed --class=Database\\Seeders\\PermissionsSeeder
 
 ## 4) Proteger rutas
 
-- Usa middleware `can:<permiso>`.
+Usa middleware `can:<permiso>` o, si prefieres Spatie directamente, `permission:<permiso>`.
 
 ```php
 Route::get('settings/profile', [ProfileController::class, 'edit'])
     ->middleware('can:settings.profile.view')
     ->name('profile.edit');
 ```
+
+### Laravel 12 + Spatie: registrar aliases de middleware de ruta
+
+En Laravel 12 ya no existe `Http/Kernel.php`. Si vas a usar `permission:`/`role:` en rutas, registra los aliases en `bootstrap/app.php`:
+
+```php
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+
+// ...
+->withMiddleware(function (Middleware $middleware) {
+    // ...
+    $middleware->alias([
+        'role' => RoleMiddleware::class,
+        'permission' => PermissionMiddleware::class,
+        'role_or_permission' => RoleOrPermissionMiddleware::class,
+    ]);
+});
+```
+
+Luego puedes proteger rutas así:
+
+```php
+Route::get('/roles', [RolesController::class, 'index'])
+    ->middleware('permission:roles.view')
+    ->name('roles.index');
+```
+
+Nota: si no registras los aliases verás el error: "Target class [permission] does not exist.".
 
 ## 5) Frontend (Inertia)
 

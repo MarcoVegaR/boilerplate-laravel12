@@ -14,7 +14,9 @@
         "release": "semantic-release",
         "docs:serve": "mkdocs serve",
         "docs:build": "mkdocs build --strict",
-        "docs:deploy": "mkdocs gh-deploy --force --clean"
+        "docs:deploy": "mkdocs gh-deploy --force --clean",
+        "test": "vitest",
+        "test:run": "vitest run"
     },
     "devDependencies": {
         "@commitlint/cli": "^19.5.0",
@@ -25,17 +27,21 @@
         "@semantic-release/git": "^10.0.1",
         "@semantic-release/github": "^10.3.5",
         "@semantic-release/release-notes-generator": "^14.0.1",
+        "@testing-library/jest-dom": "^6.8.0",
+        "@testing-library/react": "^16.3.0",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^10.0.1",
         "eslint-plugin-react": "^7.37.3",
         "eslint-plugin-react-hooks": "^5.1.0",
         "husky": "^9.1.2",
+        "jsdom": "^25.0.1",
         "lint-staged": "^15.2.10",
         "prettier": "^3.4.2",
         "prettier-plugin-organize-imports": "^4.1.0",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "semantic-release": "^23.0.0",
-        "typescript-eslint": "^8.23.0"
+        "typescript-eslint": "^8.23.0",
+        "vitest": "^2.1.9"
     },
     "dependencies": {
         "@headlessui/react": "^2.2.0",
@@ -65,6 +71,9 @@
         "@types/react": "^19.0.3",
         "@types/react-dom": "^19.0.2",
         "@vitejs/plugin-react": "^4.3.4",
+        "@zxcvbn-ts/core": "^3.0.4",
+        "@zxcvbn-ts/language-common": "^3.0.4",
+        "@zxcvbn-ts/language-es-es": "^3.0.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",

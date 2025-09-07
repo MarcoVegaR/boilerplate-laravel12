@@ -1,6 +1,6 @@
 import type { ShowMeta, ShowQuery } from '@/types/ShowQuery';
 import type { RequestPayload } from '@inertiajs/core';
-import { router, useRemember } from '@inertiajs/react';
+import { router, usePage, useRemember } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
 
 interface UseShowOptions<T = unknown> {
@@ -20,8 +20,10 @@ interface UseShowReturn<T = unknown> {
 }
 
 export function useShow<T = unknown>({ endpoint, initialItem, initialMeta }: UseShowOptions<T>): UseShowReturn<T> {
-    const [item] = useState<T>(initialItem);
-    const [meta] = useState<ShowMeta>(initialMeta);
+    // Always read latest props from Inertia so partial reloads (only: ['item','meta']) are reflected
+    const {
+        props: { item = initialItem, meta = initialMeta },
+    } = usePage<{ item: T; meta: ShowMeta }>();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useRemember<string>('overview', `show:${endpoint}:activeTab`);
 

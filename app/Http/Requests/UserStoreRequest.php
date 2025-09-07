@@ -21,7 +21,8 @@ class UserStoreRequest extends BaseStoreRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', Password::defaults(), 'confirmed'],
+            // Strong password: min 8, letters with mixed case, numbers and symbols
+            'password' => ['required', 'string', Password::min(8)->letters()->mixedCase()->numbers()->symbols(), 'confirmed'],
             'password_confirmation' => ['required', 'string'],
             'is_active' => ['nullable', 'boolean'],
             'roles_ids' => ['nullable', 'array'],

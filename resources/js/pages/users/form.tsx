@@ -1,21 +1,28 @@
+import { ConfirmAlert } from '@/components/dialogs/confirm-alert';
 import { ErrorSummary } from '@/components/form/ErrorSummary';
 import { Field } from '@/components/form/Field';
+import { ActiveField } from '@/components/forms/active-field';
 import { FieldError } from '@/components/forms/field-error';
 import { FormActions } from '@/components/forms/form-actions';
 import { FormSection } from '@/components/forms/form-section';
+import { FormVersion } from '@/components/forms/form-version';
 import { RolePicker } from '@/components/pickers/role-picker';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { useClientValidation } from '@/hooks/useClientValidation';
 import { useFirstErrorFocus } from '@/hooks/useFirstErrorFocus';
 import AppLayout from '@/layouts/app-layout';
+import { resourceCrumbs } from '@/lib/breadcrumbs';
+import { sanitizeIds } from '@/lib/utils';
 import { makeUserSchema } from '@/lib/validation/schema-user';
 import type { FormDataConvertible } from '@inertiajs/core';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ChevronRight, Info, Shield } from 'lucide-react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
+import { adjacencyGraphs, dictionary as commonDictionary } from '@zxcvbn-ts/language-common';
+import { dictionary as esDictionary, translations } from '@zxcvbn-ts/language-es-es';
+import { Copy as CopyIcon, Eye, EyeOff, Info, Shield, Wand2 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -92,16 +99,95 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
         [initialModel, initialRolesIds],
     );
 
-    useUnsavedChanges(form.data, initialData, true, {
+    const [navConfirm, setNavConfirm] = React.useState<{ open: boolean; resume?: () => void } | null>(null);
+    const [showPassword, setShowPassword] = React.useState(false);
+    const [copyAnnouncement, setCopyAnnouncement] = React.useState('');
+
+    const { hasUnsavedChanges, clearUnsavedChanges } = useUnsavedChanges(form.data, initialData, true, {
         excludeKeys: ['_token', '_method', '_version', 'password', 'password_confirmation'],
         ignoreUnderscored: true,
         confirmMessage: '¿Estás seguro de salir? Los cambios no guardados se perderán.',
+        onConfirm: (resume) => {
+            setNavConfirm({ open: true, resume });
+        },
     });
 
     // Client-side validation (Zod) with the same pattern used by roles
     const schema = useMemo(() => makeUserSchema(mode), [mode]);
     const { validateOnBlur, validateOnSubmit, errorsClient, mergeErrors } = useClientValidation(schema, () => form.data);
     const { focusFirstError } = useFirstErrorFocus();
+
+    // Initialize zxcvbn (Spanish dictionaries and graphs) once
+    React.useEffect(() => {
+        zxcvbnOptions.setOptions({
+            translations,
+            dictionary: {
+                ...commonDictionary,
+                ...esDictionary,
+            },
+            graphs: adjacencyGraphs,
+        });
+    }, []);
+
+    // Password strength evaluation
+    const zx = useMemo(() => {
+        const pwd = (form.data.password as string) || '';
+        if (!pwd) return null;
+        try {
+            return zxcvbn(pwd, [form.data.name ?? '', form.data.email ?? '']);
+        } catch {
+            return null;
+        }
+    }, [form.data.password, form.data.name, form.data.email]);
+
+    const score = zx?.score ?? 0;
+    const scoreLabel = ['Muy débil', 'Débil', 'Aceptable', 'Fuerte', 'Excelente'][score] ?? '';
+    const scoreColor = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-600'][score] ?? 'bg-gray-300';
+
+    // Secure password generator (ensures at least one char of each class)
+    const generateSecurePassword = useMemo(
+        () =>
+            function (length = 16) {
+                const U = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+                const L = 'abcdefghijkmnopqrstuvwxyz';
+                const D = '23456789';
+                const S = '!@#$%^&*()-_=+[]{};:,.?/';
+                const all = U + L + D + S;
+
+                const pick = (set: string) => set[Math.floor(Math.random() * set.length)];
+                const chars = [pick(U), pick(L), pick(D), pick(S)];
+                for (let i = chars.length; i < length; i++) {
+                    chars.push(pick(all));
+                }
+                // Shuffle (Fisher-Yates)
+                for (let i = chars.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [chars[i], chars[j]] = [chars[j], chars[i]];
+                }
+                return chars.join('');
+            },
+        [],
+    );
+
+    const handleGeneratePassword = () => {
+        const pwd = generateSecurePassword(16);
+        form.setData('password', pwd);
+        form.setData('password_confirmation', pwd);
+        toast.success('Contraseña generada');
+    };
+
+    const handleCopyPassword = async () => {
+        const pwd = (form.data.password as string) || '';
+        if (!pwd) return;
+        try {
+            await navigator.clipboard.writeText(pwd);
+            setCopyAnnouncement('Copiada');
+            setTimeout(() => setCopyAnnouncement(''), 1200);
+            toast.success('Contraseña copiada');
+        } catch {
+            toast.error('No se pudo copiar la contraseña');
+        }
+    };
 
     // Merge server and client errors
     const errors = mergeErrors(form.errors, errorsClient);
@@ -111,15 +197,13 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
         router.visit(route('users.index'));
     };
 
-    const sanitizeRoles = (ids: number[]) =>
-        Array.from(
-            new Set(
-                (ids || []).map((v) => (typeof v === 'string' ? Number(v) : v)).filter((v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0),
-            ),
-        );
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (mode === 'edit' && !hasUnsavedChanges) {
+            toast.info('No hay cambios para actualizar');
+            return;
+        }
 
         if (!validateOnSubmit()) {
             focusFirstError(errorsClient);
@@ -127,9 +211,12 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
             return;
         }
 
+        // Clear unsaved-changes guard on actual submit
+        clearUnsavedChanges();
+
         form.transform((data) => ({
             ...data,
-            roles_ids: sanitizeRoles(data.roles_ids as number[]),
+            roles_ids: sanitizeIds((data.roles_ids as Array<number | string>) ?? []),
             is_active: !!data.is_active,
         }));
 
@@ -172,69 +259,6 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
             <Head title={mode === 'create' ? 'Crear Usuario' : 'Editar Usuario'} />
 
             <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
-                {/* Breadcrumb Ribbon */}
-                <div className="border-b border-gray-200 bg-white/50 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="py-4">
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem>
-                                        <Link
-                                            href="/dashboard"
-                                            className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        >
-                                            Inicio
-                                        </Link>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator>
-                                        <ChevronRight className="h-3 w-3 text-gray-400" />
-                                    </BreadcrumbSeparator>
-                                    <BreadcrumbItem>
-                                        <Link
-                                            href="/users"
-                                            className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        >
-                                            Usuarios
-                                        </Link>
-                                    </BreadcrumbItem>
-                                    {mode === 'create' ? (
-                                        <>
-                                            <BreadcrumbSeparator>
-                                                <ChevronRight className="h-3 w-3 text-gray-400" />
-                                            </BreadcrumbSeparator>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">Crear</BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <BreadcrumbSeparator>
-                                                <ChevronRight className="h-3 w-3 text-gray-400" />
-                                            </BreadcrumbSeparator>
-                                            {initialModel?.id ? (
-                                                <BreadcrumbItem>
-                                                    <Link
-                                                        href={route('users.show', { user: initialModel.id })}
-                                                        className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                    >
-                                                        {initialModel?.name ?? 'Usuario'}
-                                                    </Link>
-                                                </BreadcrumbItem>
-                                            ) : null}
-                                            <BreadcrumbSeparator>
-                                                <ChevronRight className="h-3 w-3 text-gray-400" />
-                                            </BreadcrumbSeparator>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">Editar</BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </>
-                                    )}
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
-                    </div>
-                </div>
-
                 <div className="py-8">
                     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                         <form onSubmit={handleSubmit} className="bg-card space-y-6 rounded-2xl border p-6 shadow-sm lg:p-7">
@@ -244,7 +268,7 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
                             <FormSection title="Información básica" description="Datos principales del usuario">
                                 <div className="grid gap-4 md:grid-cols-2">
                                     {/* Name */}
-                                    <Field id="name" label="Nombre" required error={errors.name}>
+                                    <Field id="name" label="Nombre" required error={errors.name} hint="Ejemplo: Juan Pérez">
                                         <Input
                                             ref={firstErrorRef}
                                             name="name"
@@ -252,34 +276,89 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
                                             value={form.data.name}
                                             onChange={(e) => form.setData('name', e.target.value)}
                                             onBlur={() => validateOnBlur('name')}
-                                            placeholder="Ej: Juan Pérez"
                                             maxLength={100}
                                         />
                                     </Field>
 
                                     {/* Email */}
-                                    <Field id="email" label="Email" required error={errors.email}>
+                                    <Field id="email" label="Email" required error={errors.email} hint="Ejemplo: usuario@dominio.com">
                                         <Input
                                             name="email"
                                             type="email"
                                             value={form.data.email}
                                             onChange={(e) => form.setData('email', e.target.value)}
                                             onBlur={() => validateOnBlur('email')}
-                                            placeholder="Ej: usuario@dominio.com"
                                             maxLength={150}
                                         />
                                     </Field>
 
                                     {/* Password */}
                                     <Field id="password" label="Contraseña" required={mode === 'create'} error={errors.password}>
-                                        <Input
-                                            name="password"
-                                            type="password"
-                                            value={form.data.password}
-                                            onChange={(e) => form.setData('password', e.target.value)}
-                                            onBlur={() => validateOnBlur('password')}
-                                            placeholder={mode === 'create' ? 'Mínimo 8 caracteres' : 'Dejar vacío para no cambiar'}
-                                        />
+                                        <div className="flex flex-col gap-2">
+                                            <Input
+                                                name="password"
+                                                type={showPassword ? 'text' : 'password'}
+                                                autoComplete="new-password"
+                                                value={form.data.password}
+                                                onChange={(e) => form.setData('password', e.target.value)}
+                                                onBlur={() => validateOnBlur('password')}
+                                                maxLength={24}
+                                            />
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleGeneratePassword}
+                                                    title="Generar contraseña segura"
+                                                >
+                                                    <Wand2 className="h-4 w-4" />
+                                                    <span className="sr-only sm:not-sr-only sm:ml-1">Generar</span>
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleCopyPassword}
+                                                    title="Copiar contraseña"
+                                                    disabled={!form.data.password}
+                                                >
+                                                    <CopyIcon className="h-4 w-4" />
+                                                    <span className="sr-only sm:not-sr-only sm:ml-1">Copiar</span>
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setShowPassword((v) => !v)}
+                                                    title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                                >
+                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    <span className="sr-only sm:not-sr-only sm:ml-1">{showPassword ? 'Ocultar' : 'Mostrar'}</span>
+                                                </Button>
+                                            </div>
+                                            <span aria-live="polite" role="status" className="sr-only">
+                                                {copyAnnouncement}
+                                            </span>
+                                            {form.data.password && (
+                                                <div className="mt-1">
+                                                    <div className="overflow-hidden rounded bg-gray-200 dark:bg-gray-700">
+                                                        <div
+                                                            className={`${scoreColor} h-2 transition-all`}
+                                                            style={{ width: `${Math.max(1, score + 1) * 20}%` }}
+                                                        />
+                                                    </div>
+                                                    <div className="text-muted-foreground mt-1 text-xs">
+                                                        {scoreLabel}
+                                                        {zx?.feedback?.warning ? ` — ${zx.feedback.warning}` : ''}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <p className="text-muted-foreground text-xs">
+                                                Mínimo 8 caracteres. Debe incluir al menos una mayúscula, una minúscula, un dígito y un símbolo. Se
+                                                permiten espacios y cualquier carácter. Recomendado 12+.
+                                            </p>
+                                        </div>
                                     </Field>
 
                                     {/* Password confirmation */}
@@ -295,7 +374,7 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
                                             value={form.data.password_confirmation}
                                             onChange={(e) => form.setData('password_confirmation', e.target.value)}
                                             onBlur={() => validateOnBlur('password_confirmation')}
-                                            placeholder={mode === 'create' ? 'Repetir contraseña' : 'Repetir si cambiaste la contraseña'}
+                                            maxLength={24}
                                         />
                                     </Field>
                                 </div>
@@ -303,21 +382,17 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
                                 {/* Active status (only in edit, same pattern as roles) */}
                                 {mode === 'edit' && (
                                     <Field id="is_active" label="Estado activo" error={errors.is_active} className="md:col-span-2">
-                                        <div className="flex items-center space-x-2">
-                                            <Switch
-                                                name="is_active"
-                                                checked={form.data.is_active}
-                                                onCheckedChange={(checked) => {
-                                                    form.setData('is_active', checked);
-                                                    validateOnBlur('is_active');
-                                                }}
-                                                disabled={form.processing}
-                                                aria-describedby="active-description"
-                                            />
-                                            <Label htmlFor="is_active" className="cursor-pointer">
-                                                {form.data.is_active ? 'Usuario activo' : 'Usuario inactivo'}
-                                            </Label>
-                                        </div>
+                                        <ActiveField
+                                            checked={form.data.is_active}
+                                            onChange={(v) => {
+                                                form.setData('is_active', v);
+                                                validateOnBlur('is_active');
+                                            }}
+                                            canToggle={(can ?? {})['users.setActive'] !== false}
+                                            activeLabel="Usuario activo"
+                                            inactiveLabel="Usuario inactivo"
+                                            permissionHint="No tienes permisos para cambiar el estado del usuario"
+                                        />
                                     </Field>
                                 )}
 
@@ -328,13 +403,8 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
                                     </p>
                                 )}
 
-                                {mode === 'edit' && initialModel?.updated_at && (
-                                    <>
-                                        <input type="hidden" name="_version" value={initialModel.updated_at ?? ''} />
-                                        <p className="text-muted-foreground mt-2 text-xs">
-                                            Última actualización: {new Date(initialModel.updated_at as string).toLocaleString('es-ES')}
-                                        </p>
-                                    </>
+                                {mode === 'edit' && (
+                                    <FormVersion updatedAt={initialModel?.updated_at ?? undefined} version={initialModel?.updated_at ?? null} />
                                 )}
                             </FormSection>
 
@@ -363,15 +433,50 @@ export default function UserForm({ mode, model, initial, options, can, onSaved }
                             <FormActions
                                 onCancel={handleCancel}
                                 isSubmitting={form.processing}
+                                isDirty={hasUnsavedChanges}
                                 submitText={mode === 'create' ? 'Crear usuario' : 'Actualizar usuario'}
                             />
                         </form>
                     </div>
                 </div>
             </div>
+
+            {/* Unsaved changes confirmation dialog (replaces native confirm) */}
+            <ConfirmAlert
+                open={Boolean(navConfirm?.open)}
+                onOpenChange={(open) => {
+                    if (!open) setNavConfirm(null);
+                }}
+                title="Descartar cambios"
+                description="Tienes cambios sin guardar. ¿Deseas salir de todas formas?"
+                confirmLabel="Salir sin guardar"
+                cancelLabel="Seguir editando"
+                confirmDestructive
+                onConfirm={() => {
+                    const resume = navConfirm?.resume;
+                    setNavConfirm(null);
+                    resume?.();
+                }}
+            />
         </>
     );
 }
 
-// Apply App layout so the sidebar/header are present like roles
-UserForm.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
+// Apply App layout with header breadcrumbs using centralized helper
+type InertiaPageWithProps<P> = React.ReactElement & { props: P };
+
+UserForm.layout = (
+    page: InertiaPageWithProps<{ mode?: 'create' | 'edit'; model?: { id?: number; name?: string }; initial?: { id?: number; name?: string } }>,
+) => {
+    const props = page.props ?? {};
+    const mode = (props?.mode as 'create' | 'edit') ?? 'create';
+    const initial = props?.model ?? props?.initial ?? {};
+    const crumbs = mode === 'edit' ? resourceCrumbs('users', 'edit', { id: initial?.id, name: initial?.name }) : resourceCrumbs('users', 'create');
+    return <AppLayout breadcrumbs={crumbs}>{page}</AppLayout>;
+};
+
+// Controlled ConfirmAlert UI for unsaved changes (Inertia navigations)
+// Placed after component definition to keep JSX clean in main return
+// Note: This pattern leverages the onConfirm override from useUnsavedChanges above
+// to show our design system AlertDialog instead of window.confirm
+// (Optional helper component removed; inline ConfirmAlert is rendered above)

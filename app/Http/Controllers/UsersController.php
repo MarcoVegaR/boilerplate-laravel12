@@ -182,22 +182,9 @@ class UsersController extends BaseIndexController
 
         // Get show data from service
         $data = $this->userService->showById($user->id, $query);
-        // For testing (and strict Inertia asserts), if caller explicitly asks for relations/counts,
-        // keep the item payload minimal to only the requested pieces to avoid unexpected properties
-        if (! empty($query->with) || ! empty($query->withCount)) {
-            $minimal = [];
-            if (in_array('roles', $query->withCount, true) && array_key_exists('roles_count', $data['item'])) {
-                $minimal['roles_count'] = $data['item']['roles_count'];
-            }
-            if (in_array('roles', $query->with, true) && array_key_exists('roles', $data['item'])) {
-                $minimal['roles'] = $data['item']['roles'];
-            }
-
-            // Only replace when we actually minimized something
-            if (! empty($minimal)) {
-                $data['item'] = $minimal;
-            }
-        }
+        // Keep full item payload; relations/counts are additive when requested (
+        // tests accept extra properties via ->etc()). Do not minimize to avoid
+        // overwriting base fields (e.g., name/email) during partial reloads.
         $data['hasEditRoute'] = Route::has('users.edit');
 
         // Return Inertia response

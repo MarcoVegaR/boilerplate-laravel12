@@ -12,4 +12,14 @@ export default function UsersCreatePage({ options, can }: UsersCreatePageProps) 
     return <UserForm mode="create" options={options} can={can ?? {}} />;
 }
 
-UsersCreatePage.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
+UsersCreatePage.layout = (page: React.ReactNode) => (
+    <AppLayout
+        breadcrumbs={[
+            { title: 'Inicio', href: '/dashboard' },
+            { title: 'Usuarios', href: '/users' },
+            { title: 'Crear', href: '' },
+        ]}
+    >
+        {page}
+    </AppLayout>
+);

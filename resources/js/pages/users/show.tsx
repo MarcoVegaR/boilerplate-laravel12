@@ -3,7 +3,6 @@ import { SectionNav } from '@/components/show-base/SectionNav';
 import { ShowLayout } from '@/components/show-base/ShowLayout';
 import { ShowSection } from '@/components/show-base/ShowSection';
 import { Badge } from '@/components/ui/badge';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,9 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useShow } from '@/hooks/use-show';
 import AppLayout from '@/layouts/app-layout';
+import { resourceCrumbs } from '@/lib/breadcrumbs';
 import type { PageProps } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ChevronRight, Hash, Mail, Power, Shield, Trash2, User as UserIcon, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Hash, Mail, Power, Shield, Trash2, User as UserIcon, Users } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 interface UserRoleRef {
@@ -95,45 +95,8 @@ export default function UserShow({ item: initialItem, meta: initialMeta, auth }:
     }, [item.roles, roleSearch]);
 
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={resourceCrumbs('users', 'show', { id: item.id, name: item.name })}>
             <Head title={`Usuario: ${item.name}`} />
-
-            {/* Breadcrumb Ribbon */}
-            <div className="border-b border-gray-200 bg-white/50 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/50">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="py-4">
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <Link
-                                        href="/dashboard"
-                                        className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                    >
-                                        Inicio
-                                    </Link>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator>
-                                    <ChevronRight className="h-3 w-3 text-gray-400" />
-                                </BreadcrumbSeparator>
-                                <BreadcrumbItem>
-                                    <Link
-                                        href="/users"
-                                        className="text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                    >
-                                        Usuarios
-                                    </Link>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator>
-                                    <ChevronRight className="h-3 w-3 text-gray-400" />
-                                </BreadcrumbSeparator>
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage className="font-medium text-gray-900 dark:text-gray-100">{item.name}</BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
-                    </div>
-                </div>
-            </div>
 
             <ShowLayout
                 header={

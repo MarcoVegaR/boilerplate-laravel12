@@ -13,10 +13,9 @@ import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Ajustes de perfil',
-        href: '/settings/profile',
-    },
+    { title: 'Inicio', href: '/dashboard' },
+    { title: 'Ajustes', href: '/settings' },
+    { title: 'Ajustes de perfil', href: '/settings/profile' },
 ];
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {

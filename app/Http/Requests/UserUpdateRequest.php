@@ -26,7 +26,8 @@ class UserUpdateRequest extends BaseUpdateRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-            'password' => ['nullable', 'string', Password::defaults(), 'confirmed'],
+            // Strong password when provided: min 8, letters with mixed case, numbers and symbols
+            'password' => ['nullable', 'string', Password::min(8)->letters()->mixedCase()->numbers()->symbols(), 'confirmed'],
             'password_confirmation' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
             'roles_ids' => ['nullable', 'array'],

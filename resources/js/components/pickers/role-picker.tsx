@@ -172,6 +172,7 @@ export function RolePicker({
                                                         checked={isSelected}
                                                         onCheckedChange={() => handleSelect(role.id)}
                                                         onClick={(e) => e.stopPropagation()}
+                                                        className="data-[state=checked]:border-primary data-[state=checked]:bg-primary focus-visible:ring-primary/50 border-2 border-slate-400 shadow-sm hover:border-slate-500 dark:border-slate-500 dark:hover:border-slate-400"
                                                     />
                                                 ) : (
                                                     <div className="flex h-5 w-5 items-center justify-center">

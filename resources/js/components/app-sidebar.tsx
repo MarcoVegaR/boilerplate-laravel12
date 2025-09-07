@@ -18,9 +18,13 @@ function useMainNavItems(): NavItem[] {
         items.push({ title: 'Usuarios', url: '/users', icon: Users2 });
     }
 
-    // Roles and Auditoría are kept as before
-    items.push({ title: 'Roles', url: '/roles', icon: Shield });
-    items.push({ title: 'Auditoría', url: '/auditoria', icon: History });
+    // Conditionally show Roles and Auditoría only if user has view permission
+    if (can['roles.view']) {
+        items.push({ title: 'Roles', url: '/roles', icon: Shield });
+    }
+    if (can['auditoria.view']) {
+        items.push({ title: 'Auditoría', url: '/auditoria', icon: History });
+    }
 
     return items;
 }

@@ -46,6 +46,7 @@ Definidos en `config/permissions/users.php` y agregados por `config/permissions.
 - `users.restore`
 - `users.forceDelete`
 - `users.export`
+- `users.setActive`
 
 Policy: `App\Policies\UserPolicy` (extiende `BaseResourcePolicy` con prefijo `users`).
 
@@ -72,6 +73,7 @@ Policy: `App\Policies\UserPolicy` (extiende `BaseResourcePolicy` con prefijo `us
     - `allowedExportFormats()`: `csv`, `xlsx`, `json`
     - Extra: `availableRoles` para el filtro
 - Rutas: `routes/users.php`
+
     - `GET /users` → index
     - `GET /users/export` → export
     - `POST /users/bulk` → operaciones masivas (`delete`, `restore`, `forceDelete`, `setActive`)
@@ -81,6 +83,8 @@ Policy: `App\Policies\UserPolicy` (extiende `BaseResourcePolicy` con prefijo `us
     - `PUT /users/{user}` → update
     - `PATCH /users/{user}/active` → setActive (independiente de update)
     - `DELETE /users/{user}` → destroy
+
+    En Laravel 12, las rutas están reforzadas con middleware de Spatie (`permission:*`) además de las Policies, p. ej. `permission:users.view`, `permission:users.export`, `permission:users.setActive`. Asegúrate de registrar los aliases en `bootstrap/app.php` (ver guía "Permisos (permission-first)").
 
 ## Frontend (resumen)
 
