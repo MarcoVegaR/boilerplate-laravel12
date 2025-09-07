@@ -1,4 +1,5 @@
 // Test setup for Vitest (jsdom)
-// Intentionally left minimal to avoid extra dependencies.
+// Extend expect with Testing Library matchers
+import '@testing-library/jest-dom/vitest';
 
 export {};

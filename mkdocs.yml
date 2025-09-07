@@ -88,6 +88,7 @@ nav:
       - Validación de formularios (frontend): frontend/forms-validation.md
       - Formularios de Roles: frontend/roles-forms.md
       - Migas de pan (SPA): frontend/breadcrumbs.md
+      - Footer (frontend): frontend/footer.md
       - Rate Limiting: backend/rate-limiting.md
       - Flash & Error Handling (Inertia): backend/flash-and-errors.md
       - Páginas de Error (Inertia): backend/errors.md
