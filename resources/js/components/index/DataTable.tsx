@@ -405,14 +405,18 @@ export function DataTable<TData>({
                         </Select>
                     </div>
                     <div className="text-muted-foreground flex items-center text-sm">
-                        {rowCount > 0 ? (
-                            <>
-                                Mostrando {Math.min(pageIndex * pageSize + 1, rowCount)} a {Math.min((pageIndex + 1) * pageSize, rowCount)} de{' '}
-                                {rowCount} registros
-                            </>
-                        ) : (
-                            'Sin registros'
-                        )}
+                        {rowCount > 0
+                            ? (() => {
+                                  const visible = table.getRowModel().rows.length;
+                                  const from = Math.min(pageIndex * pageSize + 1, rowCount);
+                                  const to = Math.min(pageIndex * pageSize + visible, rowCount);
+                                  return (
+                                      <>
+                                          Mostrando {from} a {to} de {rowCount} registros
+                                      </>
+                                  );
+                              })()
+                            : 'Sin registros'}
                     </div>
                     <div className="flex w-[100px] items-center justify-center text-sm font-medium">
                         Página {pageIndex + 1} de {Math.max(pageCount, 1)}

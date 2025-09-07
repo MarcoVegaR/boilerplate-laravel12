@@ -31,13 +31,13 @@ function useMainNavItems(): NavItem[] {
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
+        title: 'Repositorio',
+        url: 'https://github.com/MarcoVegaR/boilerplate-laravel12',
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
+        title: 'Documentación',
+        url: 'https://marcovegar.github.io/boilerplate-laravel12',
         icon: BookOpen,
     },
 ];

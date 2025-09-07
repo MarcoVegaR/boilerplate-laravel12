@@ -1,157 +1,291 @@
+import AppLogo from '@/components/app-logo';
+import { StatsCard } from '@/components/stats-card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { Activity, ArrowRight, CheckCircle2, Database, FileText, PlayCircle, Settings, Shield, Users } from 'lucide-react';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
 
     return (
         <>
-            <Head title="Bienvenido">
-                <link rel="preconnect" href="https://fonts.bunny.net" />
-                <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-            </Head>
-            <div className="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] lg:justify-center lg:p-8 dark:bg-[#0a0a0a]">
-                <header className="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl">
-                    <nav className="flex items-center justify-end gap-4">
-                        {auth.user ? (
-                            <Link
-                                href={route('dashboard')}
-                                className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                            >
-                                Panel
-                            </Link>
-                        ) : (
-                            <>
-                                <Link
-                                    href={route('login')}
-                                    className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                                >
-                                    Iniciar sesión
-                                </Link>
-                                {/* Registration disabled by policy: hide public Register link.
-                                <Link
-                                    href={route('register')}
-                                    className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                                >
-                                    Register
-                                </Link>
-                                */}
-                            </>
-                        )}
-                    </nav>
-                </header>
-                <div className="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">
-                    <main className="flex w-full max-w-[335px] flex-col-reverse lg:max-w-4xl lg:flex-row">
-                        <div className="flex-1 rounded-br-lg rounded-bl-lg bg-white p-6 pb-12 text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:rounded-tl-lg lg:rounded-br-none lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]">
-                            <h1 className="mb-1 font-medium">Comencemos</h1>
-                            <p className="mb-2 text-[#706f6c] dark:text-[#A1A09A]">
-                                Laravel tiene un ecosistema increíblemente rico.
-                                <br />
-                                Te sugerimos empezar con lo siguiente.
-                            </p>
-                            <ul className="mb-4 flex flex-col lg:mb-6">
-                                <li className="relative flex items-center gap-4 py-2 before:absolute before:top-1/2 before:bottom-0 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]">
-                                    <span className="relative bg-white py-1 dark:bg-[#161615]">
-                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#e3e3e0] bg-[#FDFDFC] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] dark:border-[#3E3E3A] dark:bg-[#161615]">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A]" />
-                                        </span>
-                                    </span>
-                                    <span>
-                                        Lee la
-                                        <a
-                                            href="https://laravel.com/docs"
-                                            target="_blank"
-                                            className="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
-                                        >
-                                            <span>Documentación</span>
-                                            <svg
-                                                width={10}
-                                                height={11}
-                                                viewBox="0 0 10 11"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-2.5 w-2.5"
-                                            >
-                                                <path
-                                                    d="M7.70833 6.95834V2.79167H3.54167M2.5 8L7.5 3.00001"
-                                                    stroke="currentColor"
-                                                    strokeLinecap="square"
-                                                />
-                                            </svg>
-                                        </a>
-                                    </span>
-                                </li>
-                                <li className="relative flex items-center gap-4 py-2 before:absolute before:top-0 before:bottom-1/2 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]">
-                                    <span className="relative bg-white py-1 dark:bg-[#161615]">
-                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#e3e3e0] bg-[#FDFDFC] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] dark:border-[#3E3E3A] dark:bg-[#161615]">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A]" />
-                                        </span>
-                                    </span>
-                                    <span>
-                                        Mira tutoriales en vídeo en
-                                        <a
-                                            href="https://laracasts.com"
-                                            target="_blank"
-                                            className="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
-                                        >
-                                            <span>Laracasts</span>
-                                            <svg
-                                                width={10}
-                                                height={11}
-                                                viewBox="0 0 10 11"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-2.5 w-2.5"
-                                            >
-                                                <path
-                                                    d="M7.70833 6.95834V2.79167H3.54167M2.5 8L7.5 3.00001"
-                                                    stroke="currentColor"
-                                                    strokeLinecap="square"
-                                                />
-                                            </svg>
-                                        </a>
-                                    </span>
-                                </li>
-                            </ul>
-                            <ul className="flex gap-3 text-sm leading-normal">
-                                <li>
-                                    <a
-                                        href="https://cloud.laravel.com"
-                                        target="_blank"
-                                        className="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
-                                    >
-                                        Desplegar ahora
-                                    </a>
-                                </li>
-                            </ul>
+            <Head title="Bienvenido" />
+            <div className="from-primary/5 to-background text-foreground relative isolate min-h-screen bg-gradient-to-b">
+                {/* Background decorative gradients */}
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[-10rem] -z-10 flex justify-center overflow-hidden blur-3xl">
+                    <div className="from-primary/30 h-[20rem] w-[72rem] bg-gradient-to-tr to-violet-500/30 opacity-30 dark:opacity-20" />
+                </div>
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-[-8rem] -z-10 flex justify-center overflow-hidden blur-3xl">
+                    <div className="to-primary/20 h-[18rem] w-[60rem] bg-gradient-to-br from-emerald-400/20 opacity-30 dark:opacity-20" />
+                </div>
+                <header className="border-border/50 bg-background/60 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-10 border-b backdrop-blur">
+                    <div className="container mx-auto flex items-center justify-between px-6 py-4">
+                        <div className="flex items-center gap-3">
+                            <AppLogo />
                         </div>
-                        <div className="relative -mb-px aspect-[335/376] w-full shrink-0 overflow-hidden rounded-t-lg bg-[#fff2f2] lg:mb-0 lg:-ml-px lg:aspect-auto lg:w-[438px] lg:rounded-t-none lg:rounded-r-lg dark:bg-[#1D0002]">
-                            <svg
-                                className="w-full max-w-none translate-y-0 text-[#F53003] opacity-100 transition-all duration-750 dark:text-[#F61500] starting:translate-y-6 starting:opacity-0"
-                                viewBox="0 0 438 104"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path d="M17.2036 -3H0V102.197H49.5189V86.7187H17.2036V-3Z" fill="currentColor" />
-                                <path
-                                    d="M110.256 41.6337C108.061 38.1275 104.945 35.3731 100.905 33.3681C96.8667 31.3647 92.8016 30.3618 88.7131 30.3618C83.4247 30.3618 78.5885 31.3389 74.201 33.2923C69.8111 35.2456 66.0474 37.928 62.9059 41.3333C59.7643 44.7401 57.3198 48.6726 55.5754 53.1293C53.8287 57.589 52.9572 62.274 52.9572 67.1813C52.9572 72.1925 53.8287 76.8995 55.5754 81.3069C57.3191 85.7173 59.7636 89.6241 62.9059 93.0293C66.0474 96.4361 69.8119 99.1155 74.201 101.069C78.5885 103.022 83.4247 103.999 88.7131 103.999C92.8016 103.999 96.8667 102.997 100.905 100.994C104.945 98.9911 108.061 96.2359 110.256 92.7282V102.195H126.563V32.1642H110.256V41.6337ZM108.76 75.7472C107.762 78.4531 106.366 80.8078 104.572 82.8112C102.776 84.8161 100.606 86.4183 98.0637 87.6206C95.5202 88.823 92.7004 89.4238 89.6103 89.4238C86.5178 89.4238 83.7252 88.823 81.2324 87.6206C78.7388 86.4183 76.5949 84.8161 74.7998 82.8112C73.004 80.8078 71.6319 78.4531 70.6856 75.7472C69.7356 73.0421 69.2644 70.1868 69.2644 67.1821C69.2644 64.1758 69.7356 61.3205 70.6856 58.6154C71.6319 55.9102 73.004 53.5571 74.7998 51.5522C76.5949 49.5495 78.738 47.9451 81.2324 46.7427C83.7252 45.5404 86.5178 44.9396 89.6103 44.9396C92.7012 44.9396 95.5202 45.5404 98.0637 46.7427C100.606 47.9451 102.776 49.5487 104.572 51.5522C106.367 53.5571 107.762 55.9102 108.76 58.6154C109.756 61.3205 110.256 64.1758 110.256 67.1821C110.256 70.1868 109.756 73.0421 108.76 75.7472Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M242.805 41.6337C240.611 38.1275 237.494 35.3731 233.455 33.3681C229.416 31.3647 225.351 30.3618 221.262 30.3618C215.974 30.3618 211.138 31.3389 206.75 33.2923C202.36 35.2456 198.597 37.928 195.455 41.3333C192.314 44.7401 189.869 48.6726 188.125 53.1293C186.378 57.589 185.507 62.274 185.507 67.1813C185.507 72.1925 186.378 76.8995 188.125 81.3069C189.868 85.7173 192.313 89.6241 195.455 93.0293C198.597 96.4361 202.361 99.1155 206.75 101.069C211.138 103.022 215.974 103.999 221.262 103.999C225.351 103.999 229.416 102.997 233.455 100.994C237.494 98.9911 240.611 96.2359 242.805 92.7282V102.195H259.112V32.1642H242.805V41.6337ZM241.31 75.7472C240.312 78.4531 238.916 80.8078 237.122 82.8112C235.326 84.8161 233.156 86.4183 230.614 87.6206C228.07 88.823 225.251 89.4238 222.16 89.4238C219.068 89.4238 216.275 88.823 213.782 87.6206C211.289 86.4183 209.145 84.8161 207.35 82.8112C205.554 80.8078 204.182 78.4531 203.236 75.7472C202.286 73.0421 201.814 70.1868 201.814 67.1821C201.814 64.1758 202.286 61.3205 203.236 58.6154C204.182 55.9102 205.554 53.5571 207.35 51.5522C209.145 49.5495 211.288 47.9451 213.782 46.7427C216.275 45.5404 219.068 44.9396 222.16 44.9396C225.251 44.9396 228.07 45.5404 230.614 46.7427C233.156 47.9451 235.326 49.5487 237.122 51.5522C238.917 53.5571 240.312 55.9102 241.31 58.6154C242.306 61.3205 242.806 64.1758 242.806 67.1821C242.805 70.1868 242.305 73.0421 241.31 75.7472Z"
-                                    fill="currentColor"
-                                />
-                                <path d="M438 -3H421.694V102.197H438V-3Z" fill="currentColor" />
-                                <path d="M139.43 102.197H155.735V48.2834H183.712V32.1665H139.43V102.197Z" fill="currentColor" />
-                                <path
-                                    d="M324.49 32.1665L303.995 85.794L283.498 32.1665H266.983L293.748 102.197H314.242L341.006 32.1665H324.49Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M376.571 30.3656C356.603 30.3656 340.797 46.8497 340.797 67.1828C340.797 89.6597 356.094 104 378.661 104C391.29 104 399.354 99.1488 409.206 88.5848L398.189 80.0226C398.183 80.031 389.874 90.9895 377.468 90.9895C363.048 90.9895 356.977 79.3111 356.977 73.269H411.075C413.917 50.1328 398.775 30.3656 376.571 30.3656ZM357.02 61.0967C357.145 59.7487 359.023 43.3761 376.442 43.3761C393.861 43.3761 395.978 59.7464 396.099 61.0967H357.02Z"
-                                    fill="currentColor"
-                                />
-                            </svg>
+                        <nav className="flex items-center gap-3">
+                            {auth.user ? (
+                                <Button asChild variant="outline">
+                                    <Link href={route('dashboard')}>Ir al panel</Link>
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button asChild variant="ghost">
+                                        <Link href={route('login')}>Iniciar sesión</Link>
+                                    </Button>
+                                </>
+                            )}
+                        </nav>
+                    </div>
+                </header>
+                <main className="container mx-auto grid gap-10 px-6 py-10 lg:grid-cols-2 lg:gap-14 lg:py-16">
+                    <section className="flex flex-col justify-center">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="success">Listo para producción</Badge>
+                            <Badge variant="outline" className="text-muted-foreground gap-1">
+                                <Shield className="text-primary h-3.5 w-3.5" /> Laravel · Inertia · React
+                            </Badge>
+                            <Badge variant="secondary" className="gap-1">
+                                v1.4.0
+                            </Badge>
+                        </div>
+                        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+                            <span className="from-primary bg-gradient-to-r to-violet-500 bg-clip-text text-transparent">
+                                Construye apps serias más rápido
+                            </span>
+                        </h1>
+                        <p className="text-muted-foreground mt-4 max-w-xl text-pretty">
+                            Base moderna con autenticación, roles y permisos, auditoría, diseño accesible y pruebas, lista para desplegar.
+                        </p>
+                        <div className="border-border/50 from-primary/5 ring-primary/10 supports-[backdrop-filter]:bg-card/70 mt-6 flex flex-wrap items-center gap-3 rounded-lg border bg-gradient-to-r to-violet-500/5 p-2 shadow-xs ring-1 backdrop-blur">
+                            {auth.user ? (
+                                <Button asChild size="lg">
+                                    <Link href={route('dashboard')}>
+                                        Ir al panel <ArrowRight className="ml-1 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button asChild size="lg">
+                                    <Link href={route('login')}>
+                                        Empezar ahora <ArrowRight className="ml-1 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            )}
+                            <Button asChild variant="outline" size="lg">
+                                <a href="https://github.com/MarcoVegaR/boilerplate-laravel12" target="_blank" rel="noreferrer">
+                                    Repositorio
+                                </a>
+                            </Button>
+                            {import.meta.env.DEV && (
+                                <Button asChild variant="secondary" size="lg">
+                                    <Link href="/playground">
+                                        Playground <PlayCircle className="ml-1 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            )}
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href={route('roles.index')}>
+                                    <Users className="mr-1 h-4 w-4" /> Roles
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href={route('users.index')}>
+                                    <Users className="mr-1 h-4 w-4" /> Usuarios
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href={route('auditoria.index')}>
+                                    <Activity className="mr-1 h-4 w-4" /> Auditoría
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href={route('profile.edit')}>
+                                    <Settings className="mr-1 h-4 w-4" /> Ajustes
+                                </Link>
+                            </Button>
+                        </div>
+                        <ul className="text-muted-foreground mt-8 grid gap-3 text-sm">
+                            <li className="inline-flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                                Inertia + React + Vite + Tailwind
+                            </li>
+                            <li className="inline-flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                                Roles y permisos (Policies + Gates)
+                            </li>
+                            <li className="inline-flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                                Auditoría de cambios
+                            </li>
+                            <li className="inline-flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                                UI accesible, responsive y lista para producción
+                            </li>
+                        </ul>
+                    </section>
+                    <section className="grid content-start gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <StatsCard
+                                title="Usuarios activos"
+                                value="1,248"
+                                delta={4.2}
+                                deltaDirection="auto"
+                                intent="info"
+                                icon={<Users className="text-info size-4" />}
+                            />
+                            <StatsCard
+                                title="Exportaciones"
+                                value="86"
+                                delta={1.1}
+                                deltaDirection="auto"
+                                intent="success"
+                                icon={<Database className="text-success size-4" />}
+                            />
+                            <StatsCard
+                                title="Eventos de auditoría"
+                                value="312"
+                                delta={-0.6}
+                                deltaDirection="auto"
+                                intent="warning"
+                                icon={<Activity className="text-warning size-4" />}
+                            />
+                        </div>
+                        <div className="bg-card/60 supports-[backdrop-filter]:bg-card/70 relative overflow-hidden rounded-xl border p-6 shadow-sm backdrop-blur">
+                            <div className="from-primary/10 dark:from-primary/15 pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br via-transparent to-violet-100/10 dark:to-violet-300/10" />
+                            <PlaceholderPattern className="text-foreground/10 absolute inset-0 -z-10 [&_path]:stroke-current" />
+                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                <Badge variant="info" className="gap-1">
+                                    <Users className="h-3.5 w-3.5" /> Usuarios
+                                </Badge>
+                                <Badge variant="warning" className="gap-1">
+                                    <Activity className="h-3.5 w-3.5" /> Auditoría
+                                </Badge>
+                                <Badge variant="secondary" className="gap-1">
+                                    <Database className="h-3.5 w-3.5" /> Exportación
+                                </Badge>
+                                <Badge variant="outline" className="gap-1">
+                                    <Settings className="h-3.5 w-3.5" /> Preferencias
+                                </Badge>
+                            </div>
+                            <p className="text-muted-foreground text-sm">Explora el Playground para ver componentes, formularios, tablas y toasts.</p>
+                            {import.meta.env.DEV && (
+                                <div className="mt-4">
+                                    <Button asChild>
+                                        <Link href="/playground">Abrir Playground</Link>
+                                    </Button>
+                                </div>
+                            )}
+                            {/* Preview skeleton list */}
+                            <div className="mt-6 space-y-2">
+                                <Skeleton className="h-5 w-5/6" />
+                                <Skeleton className="h-5 w-4/6" />
+                                <Skeleton className="h-5 w-3/6" />
+                                <Skeleton className="h-5 w-2/6" />
+                            </div>
+                        </div>
+                        <Separator className="my-4" />
+                        <div className="mb-1 flex items-end justify-between gap-4">
+                            <h2 className="text-lg font-semibold tracking-tight">Explora el boilerplate</h2>
+                            <div className="text-muted-foreground hidden text-xs sm:block">Gestión, auditoría, exportación y ajustes</div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <Card className="transition-shadow transition-transform hover:-translate-y-0.5 hover:shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="inline-flex items-center gap-2 text-lg">
+                                        <Users className="h-5 w-5 text-sky-600 dark:text-sky-400" /> Usuarios y Roles
+                                    </CardTitle>
+                                    <CardDescription>Gestión de usuarios, roles y permisos.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link href={route('roles.index')}>Ver roles</Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                            <Card className="transition-shadow hover:shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="inline-flex items-center gap-2 text-lg">
+                                        <Activity className="h-5 w-5 text-rose-600 dark:text-rose-400" /> Auditoría
+                                    </CardTitle>
+                                    <CardDescription>Registro de acciones y cambios.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link href={route('auditoria.index')}>Ver auditoría</Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                            <Card className="transition-shadow hover:shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="inline-flex items-center gap-2 text-lg">
+                                        <Database className="h-5 w-5 text-violet-600 dark:text-violet-400" /> Exportación
+                                    </CardTitle>
+                                    <CardDescription>Exporta datos a CSV, XLSX, JSON.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link href={route('dashboard')}>Probar exportación</Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                            <Card className="transition-shadow hover:shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="inline-flex items-center gap-2 text-lg">
+                                        <Settings className="h-5 w-5 text-emerald-600 dark:text-emerald-400" /> Preferencias
+                                    </CardTitle>
+                                    <CardDescription>Perfil, tema y seguridad.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link href={route('profile.edit')}>Abrir ajustes</Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <Card className="transition-shadow hover:shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="inline-flex items-center gap-2">
+                                    <FileText className="text-primary h-5 w-5" /> Documentación
+                                </CardTitle>
+                                <CardDescription>Guías, how-to y referencias del proyecto.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-wrap gap-3">
+                                    <Button asChild variant="outline" size="sm">
+                                        <a href="https://marcovegar.github.io/boilerplate-laravel12" target="_blank" rel="noreferrer">
+                                            Abrir docs
+                                        </a>
+                                    </Button>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <a
+                                            href="https://github.com/MarcoVegaR/boilerplate-laravel12/blob/main/README.md"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            README
+                                        </a>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </section>
+                </main>
+                <footer className="border-border/50 text-muted-foreground container mx-auto border-t px-6 py-10 text-center text-xs">
+                    {new Date().getFullYear()} Caracoders Pro Services · Construido con Laravel, Inertia y React
+                </footer>
+            </div>
+        </>
+    );
+}
+/*
                             <svg
                                 className="relative -mt-[4.9rem] -ml-8 w-[448px] max-w-none lg:-mt-[6.6rem] lg:ml-0 dark:hidden"
                                 viewBox="0 0 440 376"
@@ -790,3 +924,4 @@ export default function Welcome() {
         </>
     );
 }
+*/

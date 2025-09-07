@@ -21,7 +21,15 @@ class PasswordUpdateRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string', 'current_password:web'],
-            'password' => ['required', 'string', Password::defaults(), 'confirmed', 'different:current_password'],
+            // Match UserStoreRequest requirements: strong password
+            'password' => [
+                'required',
+                'string',
+                Password::min(8)->letters()->mixedCase()->numbers()->symbols(),
+                'confirmed',
+                'different:current_password',
+            ],
+            'password_confirmation' => ['required', 'string'],
         ];
     }
 }

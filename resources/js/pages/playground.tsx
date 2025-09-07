@@ -7,8 +7,10 @@ import { RowActionsMenu, RowActionsMenuBasic, type ActionItem } from '@/componen
 import { StatsCard } from '@/components/stats-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { DatePicker, type DateRange } from '@/components/ui/date-picker';
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { SimpleTooltip } from '@/components/ui/tooltip-simple';
 import { exportVisibleAsCSV } from '@/lib/export-from-table';
 import { createTableColumn } from '@/lib/table-column-factory';
@@ -318,178 +320,214 @@ export default function Playground() {
     }, [globalFilter, sorting]);
 
     return (
-        <div className="container mx-auto max-w-4xl space-y-8 p-6">
-            <h1 className="text-2xl font-semibold">Playground UI</h1>
+        <div className="container mx-auto max-w-6xl space-y-8 p-6">
+            {/* Header / Hero */}
+            <Card className="bg-card/70 supports-[backdrop-filter]:bg-card/60 relative overflow-hidden border shadow-sm">
+                <div className="pointer-events-none absolute inset-0 -z-10">
+                    <PlaceholderPattern className="text-foreground/10 [&_path]:stroke-current" />
+                </div>
+                <CardHeader>
+                    <CardTitle className="text-2xl">Playground UI</CardTitle>
+                    <CardDescription>Explora componentes interactivos del diseño: formularios, menús, diálogos, métricas y tablas.</CardDescription>
+                </CardHeader>
+            </Card>
 
-            {/* Combobox - single */}
-            <section className="space-y-2">
-                <h2 className="text-lg font-medium">Combobox — Single</h2>
-                <Combobox
-                    id="cb-single"
-                    options={OPTIONS}
-                    value={single}
-                    onChange={(v) => setSingle(typeof v === 'string' ? v : '')}
-                    placeholder="Selecciona una fruta…"
-                    searchPlaceholder="Buscar fruta…"
-                    allowCreate
-                />
-                <p className="text-muted-foreground text-sm">Valor: {single || '—'}</p>
-            </section>
-
-            {/* Combobox - multiple */}
-            <section className="space-y-2">
-                <h2 className="text-lg font-medium">Combobox — Multiple</h2>
-                <Combobox
-                    id="cb-multi"
-                    options={OPTIONS}
-                    value={multi}
-                    onChange={(v) => setMulti(Array.isArray(v) ? v : [])}
-                    multiple
-                    placeholder="Selecciona frutas…"
-                    searchPlaceholder="Buscar frutas…"
-                    allowCreate
-                />
-                <p className="text-muted-foreground text-sm">Valores: {multi.length ? multi.join(', ') : '—'}</p>
-            </section>
+            {/* Combobox */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Combobox</CardTitle>
+                    <CardDescription>Entradas con búsqueda, selección única y múltiple.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6">
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Single</h3>
+                        <Combobox
+                            id="cb-single"
+                            options={OPTIONS}
+                            value={single}
+                            onChange={(v) => setSingle(typeof v === 'string' ? v : '')}
+                            placeholder="Selecciona una fruta…"
+                            searchPlaceholder="Buscar fruta…"
+                            allowCreate
+                        />
+                        <p className="text-muted-foreground text-sm">Valor: {single || '—'}</p>
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Multiple</h3>
+                        <Combobox
+                            id="cb-multi"
+                            options={OPTIONS}
+                            value={multi}
+                            onChange={(v) => setMulti(Array.isArray(v) ? v : [])}
+                            multiple
+                            placeholder="Selecciona frutas…"
+                            searchPlaceholder="Buscar frutas…"
+                            allowCreate
+                        />
+                        <p className="text-muted-foreground text-sm">Valores: {multi.length ? multi.join(', ') : '—'}</p>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Date Pickers */}
-            <section className="space-y-4">
-                <h2 className="text-lg font-medium">Date Picker</h2>
-                <div className="flex flex-wrap items-start gap-4">
-                    <div className="space-y-2">
-                        <h3 className="text-muted-foreground text-sm font-medium">Fecha única</h3>
-                        <DatePicker
-                            id="dp-single"
-                            mode="single"
-                            value={dateSingle}
-                            onChange={(v) => setDateSingle(v as Date | undefined)}
-                            placeholder="Selecciona una fecha"
-                            timezoneHint="Zona horaria del navegador"
-                        />
-                        <p className="text-muted-foreground text-sm">Valor: {dateSingle ? dateSingle.toLocaleDateString() : '—'}</p>
-                    </div>
-                    <div className="space-y-2">
-                        <h3 className="text-muted-foreground text-sm font-medium">Rango de fechas</h3>
-                        <DatePicker
-                            id="dp-range"
-                            mode="range"
-                            value={dateRange}
-                            onChange={(v) => setDateRange(v as DateRange | undefined)}
-                            presets={[
-                                { label: 'Últimos 7 días', getValue: () => ({ from: new Date(Date.now() - 6 * 86400000), to: new Date() }) },
-                                {
-                                    label: 'Este mes',
-                                    getValue: () => {
-                                        const now = new Date();
-                                        const start = new Date(now.getFullYear(), now.getMonth(), 1);
-                                        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                                        return { from: start, to: end };
+            <Card>
+                <CardHeader>
+                    <CardTitle>Date Picker</CardTitle>
+                    <CardDescription>Controles para fecha única y rango con presets y zona horaria.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-wrap items-start gap-6">
+                        <div className="space-y-2">
+                            <h3 className="text-muted-foreground text-sm font-medium">Fecha única</h3>
+                            <DatePicker
+                                id="dp-single"
+                                mode="single"
+                                value={dateSingle}
+                                onChange={(v) => setDateSingle(v as Date | undefined)}
+                                placeholder="Selecciona una fecha"
+                                timezoneHint="Zona horaria del navegador"
+                            />
+                            <p className="text-muted-foreground text-sm">Valor: {dateSingle ? dateSingle.toLocaleDateString() : '—'}</p>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-muted-foreground text-sm font-medium">Rango de fechas</h3>
+                            <DatePicker
+                                id="dp-range"
+                                mode="range"
+                                value={dateRange}
+                                onChange={(v) => setDateRange(v as DateRange | undefined)}
+                                presets={[
+                                    { label: 'Últimos 7 días', getValue: () => ({ from: new Date(Date.now() - 6 * 86400000), to: new Date() }) },
+                                    {
+                                        label: 'Este mes',
+                                        getValue: () => {
+                                            const now = new Date();
+                                            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                                            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                                            return { from: start, to: end };
+                                        },
                                     },
-                                },
-                            ]}
-                            placeholder="Selecciona un rango"
-                        />
-                        <p className="text-muted-foreground text-sm">
-                            Valor: {dateRange?.from ? dateRange.from.toLocaleDateString() : '—'} –{' '}
-                            {dateRange?.to ? dateRange.to.toLocaleDateString() : '—'}
-                        </p>
+                                ]}
+                                placeholder="Selecciona un rango"
+                            />
+                            <p className="text-muted-foreground text-sm">
+                                Valor: {dateRange?.from ? dateRange.from.toLocaleDateString() : '—'} –{' '}
+                                {dateRange?.to ? dateRange.to.toLocaleDateString() : '—'}
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </CardContent>
+            </Card>
 
-            {/* Menús */}
-            <section className="space-y-3">
-                <h2 className="text-lg font-medium">Menús</h2>
-                <div className="flex items-center gap-3">
-                    <RowActionsMenuBasic onEdit={() => toast.success('Editar (demo)')} onDelete={() => toast.success('Eliminar (demo)')} />
+            {/* Menús y Diálogos */}
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Menús</CardTitle>
+                        <CardDescription>Acciones globales y por fila con accesibilidad y atajos.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center gap-3">
+                            <RowActionsMenuBasic onEdit={() => toast.success('Editar (demo)')} onDelete={() => toast.success('Eliminar (demo)')} />
+                            <GlobalActionsMenuBasic
+                                onExport={() => setExportOpen(true)}
+                                onDeleteSelected={() => toast.success('Eliminar seleccionados (demo)')}
+                                ref={globalActionsRef}
+                            />
+                        </div>
+                        <ExportDialog
+                            open={exportOpen}
+                            onOpenChange={setExportOpen}
+                            title="Exportar datos"
+                            onExport={async (format: ExportFormat) => {
+                                await new Promise((r) => setTimeout(r, 1000));
+                                console.log('Export format:', format);
+                            }}
+                            toastMessages={{
+                                loading: 'Exportando…',
+                                success: 'Export listo',
+                                error: 'Error al exportar',
+                            }}
+                            focusAfterClose={globalActionsRef}
+                        />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Diálogos</CardTitle>
+                        <CardDescription>Confirmaciones accesibles con feedback y validación.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <ConfirmAlert
+                                trigger={<Button variant="destructive">Eliminar simple…</Button>}
+                                title="¿Eliminar elemento?"
+                                description="Esta acción no se puede deshacer."
+                                confirmLabel="Eliminar"
+                                onConfirm={async () => {
+                                    await new Promise((r) => setTimeout(r, 1000));
+                                }}
+                                toastMessages={{
+                                    loading: 'Eliminando…',
+                                    success: 'Elemento eliminado',
+                                    error: 'Error al eliminar',
+                                }}
+                            />
 
-                    <GlobalActionsMenuBasic
-                        onExport={() => setExportOpen(true)}
-                        onDeleteSelected={() => toast.success('Eliminar seleccionados (demo)')}
-                        ref={globalActionsRef}
-                    />
-                </div>
-            </section>
+                            <ConfirmWithReasonDialog
+                                trigger={<Button variant="outline">Eliminar con motivo…</Button>}
+                                title="Eliminar elemento con motivo"
+                                description="Indica el motivo de la eliminación."
+                                confirmLabel="Eliminar"
+                                validateReason={(r) => (r.trim().length < 3 ? 'Mínimo 3 caracteres' : null)}
+                                onConfirm={async (reason) => {
+                                    await new Promise((r) => setTimeout(r, 1200));
+                                    console.log('Motivo:', reason);
+                                }}
+                                toastMessages={{
+                                    loading: 'Procesando…',
+                                    success: () => 'Listo',
+                                    error: () => 'Error',
+                                }}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-            {/* Diálogos */}
-            <section className="space-y-3">
-                <h2 className="text-lg font-medium">Diálogos</h2>
-                <div className="flex flex-wrap items-center gap-3">
-                    <ConfirmAlert
-                        trigger={<Button variant="destructive">Eliminar simple…</Button>}
-                        title="¿Eliminar elemento?"
-                        description="Esta acción no se puede deshacer."
-                        confirmLabel="Eliminar"
-                        onConfirm={async () => {
-                            await new Promise((r) => setTimeout(r, 1000));
-                        }}
-                        toastMessages={{
-                            loading: 'Eliminando…',
-                            success: 'Elemento eliminado',
-                            error: 'Error al eliminar',
-                        }}
-                    />
-
-                    <ConfirmWithReasonDialog
-                        trigger={<Button variant="outline">Eliminar con motivo…</Button>}
-                        title="Eliminar elemento con motivo"
-                        description="Indica el motivo de la eliminación."
-                        confirmLabel="Eliminar"
-                        validateReason={(r) => (r.trim().length < 3 ? 'Mínimo 3 caracteres' : null)}
-                        onConfirm={async (reason) => {
-                            await new Promise((r) => setTimeout(r, 1200));
-                            console.log('Motivo:', reason);
-                        }}
-                        toastMessages={{
-                            loading: 'Procesando…',
-                            success: () => 'Listo',
-                            error: () => 'Error',
-                        }}
-                    />
-
-                    <ExportDialog
-                        open={exportOpen}
-                        onOpenChange={setExportOpen}
-                        title="Exportar datos"
-                        onExport={async (format: ExportFormat) => {
-                            await new Promise((r) => setTimeout(r, 1000));
-                            console.log('Export format:', format);
-                        }}
-                        toastMessages={{
-                            loading: 'Exportando…',
-                            success: 'Export listo',
-                            error: 'Error al exportar',
-                        }}
-                        focusAfterClose={globalActionsRef}
-                    />
-                </div>
-            </section>
-
-            {/* Stats Cards + Tooltip */}
-            <section className="space-y-3">
-                <h2 className="text-lg font-medium">Stats Card + Tooltip</h2>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <StatsCard title="Ingresos" value="$24.3k" delta={12.3} intent="success" deltaDirection="auto" subtitle="Últimos 30 días" />
-                    <StatsCard
-                        title="Suscripciones"
-                        value="1,204"
-                        delta={-4.5}
-                        intent="error"
-                        deltaDirection="auto"
-                        subtitle="vs. período anterior"
-                    />
-                </div>
-                <div>
-                    <SimpleTooltip content="Este botón tiene una ayuda contextual" side="top">
-                        <Button variant="outline">Hover o foco para ver Tooltip</Button>
-                    </SimpleTooltip>
-                </div>
-            </section>
+            {/* Stats & Tooltip */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Métricas & Tooltip</CardTitle>
+                    <CardDescription>Tarjetas con variación de tendencia y ejemplo de ayuda contextual.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <StatsCard title="Ingresos" value="$24.3k" delta={12.3} intent="success" deltaDirection="auto" subtitle="Últimos 30 días" />
+                        <StatsCard
+                            title="Suscripciones"
+                            value="1,204"
+                            delta={-4.5}
+                            intent="error"
+                            deltaDirection="auto"
+                            subtitle="vs. período anterior"
+                        />
+                    </div>
+                    <div>
+                        <SimpleTooltip content="Este botón tiene una ayuda contextual" side="top">
+                            <Button variant="outline">Hover o foco para ver Tooltip</Button>
+                        </SimpleTooltip>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* DataTable Demo */}
-            <section className="space-y-4">
-                <h2 className="text-lg font-medium">DataTable — TanStack v8</h2>
-                <div className="rounded-lg border p-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>DataTable — TanStack v8</CardTitle>
+                    <CardDescription>Tabla con búsqueda global, selección, exportación y acciones contextualizadas.</CardDescription>
+                </CardHeader>
+                <CardContent>
                     <DataTable
                         columns={userColumns}
                         data={currentPageUsers}
@@ -539,8 +577,8 @@ export default function Playground() {
                             </div>
                         }
                     />
-                </div>
-            </section>
+                </CardContent>
+            </Card>
 
             {/* Delete Confirmation Dialogs */}
             <ConfirmAlert

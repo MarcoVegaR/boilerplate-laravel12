@@ -20,8 +20,8 @@ it('forbids access to protected settings routes without permission', function (s
         'email' => $user->email,
     ] : ($method === 'PUT' ? [
         'current_password' => 'password',
-        'password' => 'new-password',
-        'password_confirmation' => 'new-password',
+        'password' => 'New-Passw0rd!',
+        'password_confirmation' => 'New-Passw0rd!',
     ] : []));
 
     $response->assertForbidden();
@@ -43,8 +43,8 @@ it('allows admin to access all protected settings routes', function (string $met
         'email' => 'new@example.com',
     ] : ($method === 'PUT' ? [
         'current_password' => 'password',
-        'password' => 'new-password',
-        'password_confirmation' => 'new-password',
+        'password' => 'New-Passw0rd!',
+        'password_confirmation' => 'New-Passw0rd!',
     ] : ($method === 'DELETE' ? [
         'password' => 'password',
     ] : [])));

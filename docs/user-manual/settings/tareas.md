@@ -9,37 +9,47 @@ tags:
 
 # Settings — Tareas
 
-## Preferencias de idioma y zona horaria
+## Perfil
 
 Pasos:
 
-1. Abre `Settings` → `Preferencias`.
-2. Elige el idioma (ES por defecto) y tu zona horaria.
-3. Guarda y recarga la página si es necesario.
-
-!!! tip "Localización"
-La app usa ES por defecto. Ver `reference/localizacion-por-defecto.md`.
-
-## Notificaciones
-
-Pasos:
-
-1. Abre `Settings` → `Notificaciones`.
-2. Activa o desactiva los canales disponibles (según tu instalación).
+1. Abre `Ajustes` → `Perfil`.
+2. Actualiza tu nombre y correo.
 3. Guarda cambios.
 
-## Seguridad
+## Contraseña
+
+Requisitos mínimos (también aplican al crear usuarios):
+
+- Mínimo 8 caracteres
+- Debe incluir letras, mayúsculas y minúsculas
+- Debe incluir números
+- Debe incluir símbolos
+- Confirmación obligatoria
+
+Pasos para cambiar tu contraseña:
+
+1. Abre `Ajustes` → `Contraseña`.
+2. Ingresa tu contraseña actual.
+3. Elige una nueva contraseña. Puedes usar el botón "Generar" para una contraseña segura.
+4. Revisa el medidor de fortaleza y recomendaciones.
+5. Confirma la contraseña nueva y guarda.
+
+!!! tip "Productividad"
+Usa los botones "Copiar" y "Mostrar/Ocultar" para facilitar el pegado en gestores de contraseñas.
+
+## Apariencia
 
 Pasos:
 
-1. Abre `Settings` → `Seguridad`.
-2. Revisa opciones como autenticación de dos factores si está disponible.
-3. Guarda cambios.
+1. Abre `Ajustes` → `Apariencia`.
+2. Selecciona Claro, Oscuro o Sistema.
+3. Los cambios se aplican inmediatamente.
 
 === "Menú"
 
-- Usa el menú lateral para navegar entre secciones de Settings.
+- Usa el menú lateral para navegar entre secciones de Ajustes.
 
 === "Atajos"
 
-- En instalaciones con atajos, usa `g` + `s` para ir a Settings (si se habilita en tu entorno).
+- En instalaciones con atajos, usa `g` + `s` para ir a Ajustes (si está habilitado).

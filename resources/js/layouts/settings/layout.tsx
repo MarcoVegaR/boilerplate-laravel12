@@ -1,60 +1,73 @@
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/icon';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import { Lock, Palette, User } from 'lucide-react';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Perfil',
         url: '/settings/profile',
-        icon: null,
+        icon: User,
     },
     {
         title: 'Contraseña',
         url: '/settings/password',
-        icon: null,
+        icon: Lock,
     },
     {
         title: 'Apariencia',
         url: '/settings/appearance',
-        icon: null,
+        icon: Palette,
     },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-    const currentPath = window.location.pathname;
+    const page = usePage();
+    const currentUrl = (page as unknown as { url?: string }).url ?? '';
 
     return (
-        <div className="px-4 py-6">
-            <Heading title="Ajustes" description="Administra tu perfil y ajustes de la cuenta" />
+        <div className="px-4 py-6 lg:py-8">
+            <Heading title="Ajustes" description="Administra tu perfil, seguridad y apariencia" />
 
-            <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
-                        {sidebarNavItems.map((item) => (
-                            <Button
-                                key={item.url}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': currentPath === item.url,
+            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
+                <aside className="lg:sticky lg:top-24">
+                    <Card className="overflow-hidden">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Menú de ajustes</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                            <nav className="flex flex-col gap-1">
+                                {sidebarNavItems.map((item) => {
+                                    const isActive = currentUrl.startsWith(item.url);
+                                    return (
+                                        <Link
+                                            key={item.url}
+                                            href={item.url}
+                                            prefetch
+                                            aria-current={isActive ? 'page' : undefined}
+                                            className={cn(
+                                                'focus-visible:ring-primary/50 flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none',
+                                                'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                                                isActive && 'bg-accent text-accent-foreground ring-primary/20 ring-1',
+                                            )}
+                                        >
+                                            {item.icon && <Icon iconNode={item.icon} className={cn('h-4 w-4', isActive ? 'text-primary' : '')} />}
+                                            <span className="truncate">{item.title}</span>
+                                        </Link>
+                                    );
                                 })}
-                            >
-                                <Link href={item.url} prefetch>
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
-                    </nav>
+                            </nav>
+                        </CardContent>
+                    </Card>
                 </aside>
 
-                <Separator className="my-6 md:hidden" />
-
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">{children}</section>
+                <div className="min-w-0">
+                    <Separator className="my-2 lg:hidden" />
+                    <section className="space-y-10">{children}</section>
                 </div>
             </div>
         </div>

@@ -86,7 +86,8 @@ function getInitialQuery(): QueryState {
 
     return {
         page: parseInt(params.get('page') || '1'),
-        per_page: parseInt(params.get('per_page') || '10'),
+        // Align with backend default (AuditoriaIndexRequest::defaultPerPage = 25)
+        per_page: parseInt(params.get('per_page') || '25'),
         search: params.get('q') || '',
         sort: params.get('sort') || '',
         dir,
@@ -99,8 +100,14 @@ export default function AuditoriaIndex() {
     const initialQuery = getInitialQuery();
 
     // State
-    const [pageIndex, setPageIndex] = React.useState(initialQuery.page - 1);
-    const [pageSize, setPageSize] = React.useState(initialQuery.per_page);
+    const [pageIndex, setPageIndex] = React.useState(() => {
+        const p = meta.current_page ?? meta.currentPage ?? initialQuery.page;
+        return Math.max(0, (p || 1) - 1);
+    });
+    const [pageSize, setPageSize] = React.useState(() => {
+        const ps = meta.per_page ?? meta.perPage ?? initialQuery.per_page;
+        return ps || 25;
+    });
     const [globalFilter, setGlobalFilter] = React.useState(initialQuery.search);
     const [sorting, setSorting] = React.useState<SortingState>(() => {
         if (!initialQuery.sort) return [];

@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 
 import AppearanceTabs from '@/components/appearance-tabs';
-import HeadingSmall from '@/components/heading-small';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
@@ -19,10 +19,15 @@ export default function Appearance() {
             <Head title="Ajustes de apariencia" />
 
             <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Ajustes de apariencia" description="Actualiza los ajustes de apariencia de tu cuenta" />
-                    <AppearanceTabs />
-                </div>
+                <Card className="rounded-xl">
+                    <CardHeader>
+                        <CardTitle>Ajustes de apariencia</CardTitle>
+                        <CardDescription>Actualiza los ajustes de apariencia de tu cuenta</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <AppearanceTabs />
+                    </CardContent>
+                </Card>
             </SettingsLayout>
         </AppLayout>
     );

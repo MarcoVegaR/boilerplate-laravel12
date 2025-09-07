@@ -23,10 +23,28 @@ Permitir a cada usuario ajustar sus preferencias (idioma, zona horaria, notifica
 
 ## Mapa de pantallas
 
-- Perfil y preferencias
-- Notificaciones
-- Seguridad
+- Perfil
+- Contraseña
+- Apariencia
 
 !!! warning "Políticas del proyecto"
 En este boilerplate, el **registro público** y la **autoeliminación de cuenta** están deshabilitados por defecto.
 Consulta `how-to/registro-usuarios-deshabilitado.md` y `how-to/autoeliminacion-cuenta-deshabilitada.md`.
+
+## Requisitos de contraseña
+
+Para cambios de contraseña y creación de usuarios se aplican los mismos requisitos mínimos:
+
+- Mínimo 8 caracteres
+- Debe incluir letras, mayúsculas y minúsculas
+- Debe incluir números
+- Debe incluir símbolos
+- Confirmación obligatoria
+
+La interfaz incluye un generador seguro, un medidor de fortaleza y accesos directos para copiar/mostrar la contraseña.
+
+## Diseño de la interfaz
+
+- Sidebar de ajustes fijo (sticky) en desktop, con íconos y estado activo
+- Contenido de cada sección en tarjetas (Cards) con título y descripción
+- Accesible por teclado y lector de pantalla
