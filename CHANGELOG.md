@@ -1,3 +1,9 @@
+# [1.6.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.5.0...v1.6.0) (2025-09-07)
+
+### Features
+
+- **footer:** add fixed AppFooter with sidebar-aware offset; docs legal links; tests + lint/format ([e9459f6](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/e9459f625cc59cf72787195c2290cd3e9a5b8a76))
+
 # [1.5.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.4.0...v1.5.0) (2025-09-07)
 
 ### Features
