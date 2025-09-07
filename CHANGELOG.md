@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.3.0...v1.4.0) (2025-09-07)
+
+### Features
+
+- **forms:** centralize form patterns and improve UX/a11y ([72b9ef8](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/72b9ef8543f81f37193b0bb44a72e38bd8d353db))
+
 # [1.3.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.2.2...v1.3.0) (2025-09-06)
 
 ### Features
