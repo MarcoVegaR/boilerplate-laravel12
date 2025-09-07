@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.4.0...v1.5.0) (2025-09-07)
+
+### Features
+
+- **settings,playground:** modernize settings UI and enforce strong password policy ([5950700](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/5950700bddbc1d495a7e6dcdf61195896f6f4922))
+
 # [1.4.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.3.0...v1.4.0) (2025-09-07)
 
 ### Features
