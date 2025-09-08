@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.6.0...v1.6.1) (2025-09-08)
+
+### Bug Fixes
+
+- **auditoria:** prevent reload loop when filtering ([6d818c1](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/6d818c1673ec24093230cdb38424844022a9b184))
+
 # [1.6.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.5.0...v1.6.0) (2025-09-07)
 
 ### Features
