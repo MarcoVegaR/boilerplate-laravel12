@@ -124,6 +124,7 @@ export default function AuditoriaIndex() {
 
     // Avoid triggering a partial reload on first mount (prevents reading page.component before it's ready)
     const didMountRef = React.useRef(false);
+    const isInternalReloadRef = React.useRef(false);
 
     // Show flash messages
     React.useEffect(() => {
@@ -170,6 +171,7 @@ export default function AuditoriaIndex() {
             }
         }
 
+        isInternalReloadRef.current = true;
         router.get('/auditoria', params, {
             only: ['rows', 'meta'],
             preserveState: true,
@@ -275,6 +277,11 @@ export default function AuditoriaIndex() {
             try {
                 // Narrow unknown event payload from Inertia
                 const evt = event as { detail?: { page?: { url?: string } } };
+                // Skip re-initialization when the reload was initiated internally by this component
+                if (isInternalReloadRef.current) {
+                    isInternalReloadRef.current = false;
+                    return;
+                }
                 const url: string = evt?.detail?.page?.url || '';
                 if (url.startsWith('/auditoria')) {
                     const q = getInitialQuery();

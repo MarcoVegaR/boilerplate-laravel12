@@ -131,4 +131,27 @@ class RoleRepository extends BaseRepository implements RoleRepositoryInterface
             },
         ];
     }
+
+    /**
+     * Ensure show queries include the same relations and counts as list views.
+     * This guarantees permissions_count and users_count are present consistently.
+     */
+    public function showById(int|string $id, \App\DTO\ShowQuery $query): \Illuminate\Database\Eloquent\Model
+    {
+        $builder = $this->withRelations($this->builder());
+        $this->applyShowQuery($builder, $query);
+
+        return $builder->findOrFail($id);
+    }
+
+    /**
+     * Show by UUID with consistent relations and counts.
+     */
+    public function showByUuid(string $uuid, \App\DTO\ShowQuery $query): \Illuminate\Database\Eloquent\Model
+    {
+        $builder = $this->withRelations($this->builder());
+        $this->applyShowQuery($builder, $query);
+
+        return $builder->where('uuid', $uuid)->firstOrFail();
+    }
 }
