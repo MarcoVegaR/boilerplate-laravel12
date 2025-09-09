@@ -1,3 +1,9 @@
+# [1.7.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.6.1...v1.7.0) (2025-09-09)
+
+### Features
+
+- **artisan:** add make:catalog generator with bindings, policies, FE stubs ([f16158c](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/f16158cd783300c1b170792022c28b05df61c2a7))
+
 ## [1.6.1](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.6.0...v1.6.1) (2025-09-08)
 
 ### Bug Fixes
