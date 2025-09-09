@@ -83,6 +83,7 @@ nav:
       - Patrón Show (unificado): how-to/show-pattern.md
       - Permisos (permission-first): how-to/permisos-permission-first.md
       - Crear módulo Index: how-to/create-index-module.md
+      - Generar catálogos (make:catalog): how-to/make-catalog.md
       - Registro de usuarios deshabilitado (admin-only): how-to/registro-usuarios-deshabilitado.md
       - Autoeliminación de cuenta deshabilitada: how-to/autoeliminacion-cuenta-deshabilitada.md
       - Validación de formularios (frontend): frontend/forms-validation.md

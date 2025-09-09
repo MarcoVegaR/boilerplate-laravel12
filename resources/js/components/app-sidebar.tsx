@@ -2,6 +2,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { generatedMainNavItems } from '@/menu/generated';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, History, LayoutGrid, Shield, Users2 } from 'lucide-react';
@@ -25,6 +26,9 @@ function useMainNavItems(): NavItem[] {
     if (can['auditoria.view']) {
         items.push({ title: 'Auditoría', url: '/auditoria', icon: History });
     }
+
+    // Merge generated catalog items (idempotent, permission-aware)
+    items.push(...generatedMainNavItems(can));
 
     return items;
 }
