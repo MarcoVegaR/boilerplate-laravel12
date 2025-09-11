@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,8 +27,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('login', function (Request $request) {
+            $email = Str::lower((string) $request->input('email'));
+            $ip = $request->ip();
+
             return [
-                Limit::perMinute(5)->by($request->ip().'|'.$request->input('email')),
+                // Por cuenta (email normalizado) + IP
+                Limit::perMinute(5)->by($email.'|'.$ip),
+                // Por IP global para cubrir password spraying distribuido
+                Limit::perMinute(50)->by($ip),
             ];
         });
 
@@ -43,13 +50,26 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // Two-factor challenge limiter (avoid brute forcing TOTP)
+        RateLimiter::for('two-factor', function (Request $request) {
+            $user = $request->user();
+            $userId = $user ? (string) $user->id : (string) ($request->session()->get('login.id') ?? 'guest');
+            $ip = $request->ip();
+
+            return Limit::perMinute(10)->by($userId.'|'.$ip);
+        });
+
         // App-specific expensive operations
         RateLimiter::for('exports', function (Request $request) {
-            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+            $user = $request->user();
+
+            return Limit::perMinute(10)->by(($user?->id) ?: $request->ip());
         });
 
         RateLimiter::for('bulk', function (Request $request) {
-            return Limit::perMinute(15)->by($request->user()?->id ?: $request->ip());
+            $user = $request->user();
+
+            return Limit::perMinute(15)->by(($user?->id) ?: $request->ip());
         });
 
         // Audit login/logout events

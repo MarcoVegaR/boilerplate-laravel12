@@ -5,29 +5,23 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Lock, Palette, User } from 'lucide-react';
+import { Lock, Palette, Shield, User } from 'lucide-react';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Perfil',
-        url: '/settings/profile',
-        icon: User,
-    },
-    {
-        title: 'Contraseña',
-        url: '/settings/password',
-        icon: Lock,
-    },
-    {
-        title: 'Apariencia',
-        url: '/settings/appearance',
-        icon: Palette,
-    },
+const baseSidebarNavItems: NavItem[] = [
+    { title: 'Perfil', url: '/settings/profile', icon: User },
+    { title: 'Contraseña', url: '/settings/password', icon: Lock },
+    { title: 'Apariencia', url: '/settings/appearance', icon: Palette },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-    const page = usePage();
-    const currentUrl = (page as unknown as { url?: string }).url ?? '';
+    const page = usePage<{ auth?: { can?: Record<string, boolean> } }>();
+    const currentUrl = page.url || '';
+    const can = page.props.auth?.can ?? {};
+
+    const sidebarNavItems: NavItem[] = [
+        ...baseSidebarNavItems,
+        ...(can['settings.security.view'] ? [{ title: 'Seguridad', url: '/settings/security', icon: Shield } as NavItem] : []),
+    ];
 
     return (
         <div className="px-4 py-6 lg:py-8">

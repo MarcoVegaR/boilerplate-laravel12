@@ -75,6 +75,7 @@ nav:
           - FAQ: user-manual/roles-permisos/faq.md
       - Settings:
           - Visión general: user-manual/settings/overview.md
+          - Seguridad: user-manual/settings/seguridad.md
           - Tareas: user-manual/settings/tareas.md
           - FAQ: user-manual/settings/faq.md
   - Tutoriales:

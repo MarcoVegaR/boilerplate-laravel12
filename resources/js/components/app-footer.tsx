@@ -183,15 +183,12 @@ export function AppFooter({
             </div>
         ) : null;
 
-    const positionClasses = position === 'fixed' ? 'fixed bottom-0 z-40' : position === 'sticky' ? 'sticky bottom-0' : '';
-
-    // Compute left/right offsets when inside sidebar layout (no hooks, rely on CSS vars)
-    const fixedStyle: React.CSSProperties | undefined =
-        position === 'fixed'
-            ? respectSidebarGap
-                ? ({ left: 'var(--sidebar-width)', right: 0 } as React.CSSProperties)
-                : ({ left: 0, right: 0 } as React.CSSProperties)
-            : undefined;
+    // Base positioning classes; always span full width on small screens
+    let positionClasses = position === 'fixed' ? 'fixed bottom-0 z-40 left-0 right-0' : position === 'sticky' ? 'sticky bottom-0 left-0 right-0' : '';
+    // On large screens, if we need to respect the sidebar width, offset the footer from the left
+    if (position === 'fixed' && respectSidebarGap) {
+        positionClasses += ' lg:[left:var(--sidebar-width)]';
+    }
 
     if (variant === 'minimal') {
         return (
@@ -201,14 +198,13 @@ export function AppFooter({
                     ref={footerRef}
                     role="contentinfo"
                     aria-label="site footer"
-                    className={cn('bg-background dark:bg-background border-t', positionClasses, className)}
-                    style={fixedStyle}
+                    className={cn('bg-background dark:bg-background w-full border-t', positionClasses, className)}
                 >
                     <Container boxed={container !== 'fluid'}>
-                        <div className="text-muted-foreground flex flex-col items-start justify-between gap-3 py-6 text-sm md:flex-row md:items-center">
+                        <div className="text-muted-foreground flex flex-col items-start justify-between gap-3 py-6 pb-[env(safe-area-inset-bottom)] text-sm md:flex-row md:flex-wrap md:items-center">
                             <p>
                                 © {year} {companyName}
-                                {requestId ? <span className="ml-2 text-xs"> Request ID: {requestId}</span> : null}
+                                {requestId ? <span className="ml-2 text-xs break-all"> Request ID: {requestId}</span> : null}
                             </p>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-3">
@@ -247,11 +243,10 @@ export function AppFooter({
                 ref={footerRef}
                 role="contentinfo"
                 aria-label="site footer"
-                className={cn('bg-background dark:bg-background border-t', positionClasses, className)}
-                style={fixedStyle}
+                className={cn('bg-background dark:bg-background w-full border-t', positionClasses, className)}
             >
                 <Container boxed={container !== 'fluid'}>
-                    <div className="text-muted-foreground grid grid-cols-1 gap-8 py-10 text-sm sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+                    <div className="text-muted-foreground grid grid-cols-1 gap-8 py-10 pb-[env(safe-area-inset-bottom)] text-sm sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
                         <div className="col-span-1 lg:col-span-2">
                             <div className="flex items-start gap-3">
                                 <AppLogo />
@@ -295,12 +290,12 @@ export function AppFooter({
 
                     <Separator />
 
-                    <div className="text-muted-foreground flex flex-col items-start justify-between gap-3 py-6 text-sm md:flex-row md:items-center">
+                    <div className="text-muted-foreground flex flex-col items-start justify-between gap-3 py-6 text-sm md:flex-row md:flex-wrap md:items-center">
                         <p>
                             © {year} {companyName}
-                            {requestId ? <span className="ml-2 text-xs">Request ID: {requestId}</span> : null}
+                            {requestId ? <span className="ml-2 text-xs break-all">Request ID: {requestId}</span> : null}
                         </p>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <a
                                 href="https://marcovegar.github.io/boilerplate-laravel12/legal/terminos/"
                                 target="_blank"

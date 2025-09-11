@@ -53,10 +53,17 @@ Estilos clave:
 
 Se inyecta directamente:
 
-- Público (header): `AppHeaderLayout` → `<AppFooter variant="full" />`
-- Interno (sidebar): `AppSidebarLayout` → `<AppFooter variant="minimal" />`
+- Público (header): `AppHeaderLayout` → `<AppFooter variant="full" position="fixed" />`
+- Interno (sidebar): `AppSidebarLayout` → `<AppFooter variant="minimal" position="fixed" respectSidebarGap />`
 
 Ambos respetan dark mode (clases `dark:` y tokens).
+
+### Responsive y móviles
+
+- En móviles (sm y abajo) el footer ocupa siempre todo el ancho: `left-0 right-0 w-full`.
+- Cuando `respectSidebarGap` está activo, el offset por el sidebar solo se aplica en `lg:`: `lg:[left:var(--sidebar-width)]`.
+- Se añade `pb-[env(safe-area-inset-bottom)]` para respetar el safe-area en iOS (notch/home indicator).
+- Las barras inferiores usan `flex-wrap` y el `Request ID` aplica `break-all` para evitar overflow en pantallas estrechas.
 
 ## Permisos y datos compartidos
 

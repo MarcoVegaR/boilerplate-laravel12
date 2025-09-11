@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 // use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::middleware('guest')->group(function () {
     // Registration routes disabled (admin-only user provisioning)
@@ -21,8 +22,12 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store'])
-        ->middleware('throttle:login');
+    // POST /login is handled by Laravel Fortify to support 2FA challenge
+
+    // Two-factor challenge view for SPA (Inertia)
+    Route::get('two-factor-challenge', function () {
+        return Inertia::render('auth/two-factor-challenge');
+    })->name('two-factor.login');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

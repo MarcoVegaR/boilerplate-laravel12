@@ -18,8 +18,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Download, FileJson, FileSpreadsheet, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Copy, Download, FileJson, FileSpreadsheet, FileText } from 'lucide-react';
 
+import { copyVisibleToClipboard } from '@/lib/export-from-table';
 import { BulkActionBar } from './BulkActionBar';
 import { ColumnVisibilityMenu } from './ColumnVisibilityMenu';
 import { SortableHeader } from './SortableHeader';
@@ -270,6 +271,10 @@ export function DataTable<TData>({
                                 <DropdownMenuItem onClick={() => onExportClick('json', table)} className="flex cursor-pointer items-center gap-2">
                                     <FileJson className="h-4 w-4 text-sky-600 dark:text-sky-400" />
                                     Exportar como JSON
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => copyVisibleToClipboard(table)} className="flex cursor-pointer items-center gap-2">
+                                    <Copy className="h-4 w-4" />
+                                    Copiar al portapapeles
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

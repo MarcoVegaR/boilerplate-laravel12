@@ -15,9 +15,11 @@ class ConfirmablePasswordController extends Controller
     /**
      * Show the confirm password page.
      */
-    public function show(): Response
+    public function show(Request $request): Response
     {
-        return Inertia::render('auth/confirm-password');
+        return Inertia::render('auth/confirm-password', [
+            'returnTo' => url()->previous(),
+        ]);
     }
 
     /**
@@ -35,6 +37,10 @@ class ConfirmablePasswordController extends Controller
         }
 
         $request->session()->put('auth.password_confirmed_at', time());
+        // If this is an Inertia request, stay on the same page (avoid redirecting to dashboard)
+        if ($request->hasHeader('X-Inertia')) {
+            return back(303);
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
