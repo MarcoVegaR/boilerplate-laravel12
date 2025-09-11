@@ -1,3 +1,9 @@
+# [1.8.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.7.0...v1.8.0) (2025-09-11)
+
+### Features
+
+- **security:** 2FA UX and sessions device icons + GeoIP ([cc5e5d5](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/cc5e5d5e72ab71d8eac6ba900a86e44a35373ed5))
+
 # [1.7.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.6.1...v1.7.0) (2025-09-09)
 
 ### Features
