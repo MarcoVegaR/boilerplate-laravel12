@@ -1,3 +1,4 @@
+import AppLogo from '@/components/app-logo';
 import { ConfirmAlert } from '@/components/dialogs/confirm-alert';
 import { ConfirmWithReasonDialog } from '@/components/dialogs/confirm-with-reason-dialog';
 import { ExportDialog, type ExportFormat } from '@/components/dialogs/export-dialog';
@@ -16,6 +17,7 @@ import { exportVisibleAsCSV } from '@/lib/export-from-table';
 import { createTableColumn } from '@/lib/table-column-factory';
 import { defaultRowIdGetter } from '@/lib/table-ids';
 import { toast } from '@/lib/toast';
+import { Head, Link } from '@inertiajs/react';
 import { ColumnDef, RowSelectionState, SortingState } from '@tanstack/react-table';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import * as React from 'react';
@@ -320,291 +322,319 @@ export default function Playground() {
     }, [globalFilter, sorting]);
 
     return (
-        <div className="container mx-auto max-w-6xl space-y-8 p-6">
-            {/* Header / Hero */}
-            <Card className="bg-card/70 supports-[backdrop-filter]:bg-card/60 relative overflow-hidden border shadow-sm">
-                <div className="pointer-events-none absolute inset-0 -z-10">
-                    <PlaceholderPattern className="text-foreground/10 [&_path]:stroke-current" />
+        <>
+            <Head title="Playground" />
+            <header className="border-border/50 bg-background/60 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-10 border-b backdrop-blur">
+                <div className="container mx-auto flex items-center justify-between px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <AppLogo />
+                        <span className="text-muted-foreground hidden text-sm sm:inline">Playground</span>
+                    </div>
+                    <nav className="flex items-center gap-3">
+                        <Button asChild variant="ghost">
+                            <Link href="/">Volver al inicio</Link>
+                        </Button>
+                    </nav>
                 </div>
-                <CardHeader>
-                    <CardTitle className="text-2xl">Playground UI</CardTitle>
-                    <CardDescription>Explora componentes interactivos del diseño: formularios, menús, diálogos, métricas y tablas.</CardDescription>
-                </CardHeader>
-            </Card>
-
-            {/* Combobox */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Combobox</CardTitle>
-                    <CardDescription>Entradas con búsqueda, selección única y múltiple.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-medium">Single</h3>
-                        <Combobox
-                            id="cb-single"
-                            options={OPTIONS}
-                            value={single}
-                            onChange={(v) => setSingle(typeof v === 'string' ? v : '')}
-                            placeholder="Selecciona una fruta…"
-                            searchPlaceholder="Buscar fruta…"
-                            allowCreate
-                        />
-                        <p className="text-muted-foreground text-sm">Valor: {single || '—'}</p>
+            </header>
+            <div className="container mx-auto max-w-6xl space-y-8 p-6">
+                {/* Header / Hero */}
+                <Card className="bg-card/70 supports-[backdrop-filter]:bg-card/60 relative overflow-hidden border shadow-sm">
+                    <div className="pointer-events-none absolute inset-0 -z-10">
+                        <PlaceholderPattern className="text-foreground/10 [&_path]:stroke-current" />
                     </div>
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-medium">Multiple</h3>
-                        <Combobox
-                            id="cb-multi"
-                            options={OPTIONS}
-                            value={multi}
-                            onChange={(v) => setMulti(Array.isArray(v) ? v : [])}
-                            multiple
-                            placeholder="Selecciona frutas…"
-                            searchPlaceholder="Buscar frutas…"
-                            allowCreate
-                        />
-                        <p className="text-muted-foreground text-sm">Valores: {multi.length ? multi.join(', ') : '—'}</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Date Pickers */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Date Picker</CardTitle>
-                    <CardDescription>Controles para fecha única y rango con presets y zona horaria.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap items-start gap-6">
-                        <div className="space-y-2">
-                            <h3 className="text-muted-foreground text-sm font-medium">Fecha única</h3>
-                            <DatePicker
-                                id="dp-single"
-                                mode="single"
-                                value={dateSingle}
-                                onChange={(v) => setDateSingle(v as Date | undefined)}
-                                placeholder="Selecciona una fecha"
-                                timezoneHint="Zona horaria del navegador"
-                            />
-                            <p className="text-muted-foreground text-sm">Valor: {dateSingle ? dateSingle.toLocaleDateString() : '—'}</p>
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-muted-foreground text-sm font-medium">Rango de fechas</h3>
-                            <DatePicker
-                                id="dp-range"
-                                mode="range"
-                                value={dateRange}
-                                onChange={(v) => setDateRange(v as DateRange | undefined)}
-                                presets={[
-                                    { label: 'Últimos 7 días', getValue: () => ({ from: new Date(Date.now() - 6 * 86400000), to: new Date() }) },
-                                    {
-                                        label: 'Este mes',
-                                        getValue: () => {
-                                            const now = new Date();
-                                            const start = new Date(now.getFullYear(), now.getMonth(), 1);
-                                            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                                            return { from: start, to: end };
-                                        },
-                                    },
-                                ]}
-                                placeholder="Selecciona un rango"
-                            />
-                            <p className="text-muted-foreground text-sm">
-                                Valor: {dateRange?.from ? dateRange.from.toLocaleDateString() : '—'} –{' '}
-                                {dateRange?.to ? dateRange.to.toLocaleDateString() : '—'}
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Menús y Diálogos */}
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card>
                     <CardHeader>
-                        <CardTitle>Menús</CardTitle>
-                        <CardDescription>Acciones globales y por fila con accesibilidad y atajos.</CardDescription>
+                        <CardTitle className="text-2xl">Playground UI</CardTitle>
+                        <CardDescription>
+                            Explora componentes interactivos del diseño: formularios, menús, diálogos, métricas y tablas.
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-3">
-                            <RowActionsMenuBasic onEdit={() => toast.success('Editar (demo)')} onDelete={() => toast.success('Eliminar (demo)')} />
-                            <GlobalActionsMenuBasic
-                                onExport={() => setExportOpen(true)}
-                                onDeleteSelected={() => toast.success('Eliminar seleccionados (demo)')}
-                                ref={globalActionsRef}
-                            />
-                        </div>
-                        <ExportDialog
-                            open={exportOpen}
-                            onOpenChange={setExportOpen}
-                            title="Exportar datos"
-                            onExport={async (format: ExportFormat) => {
-                                await new Promise((r) => setTimeout(r, 1000));
-                                console.log('Export format:', format);
-                            }}
-                            toastMessages={{
-                                loading: 'Exportando…',
-                                success: 'Export listo',
-                                error: 'Error al exportar',
-                            }}
-                            focusAfterClose={globalActionsRef}
-                        />
-                    </CardContent>
                 </Card>
+
+                {/* Combobox */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Diálogos</CardTitle>
-                        <CardDescription>Confirmaciones accesibles con feedback y validación.</CardDescription>
+                        <CardTitle>Combobox</CardTitle>
+                        <CardDescription>Entradas con búsqueda, selección única y múltiple.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-wrap items-center gap-3">
-                            <ConfirmAlert
-                                trigger={<Button variant="destructive">Eliminar simple…</Button>}
-                                title="¿Eliminar elemento?"
-                                description="Esta acción no se puede deshacer."
-                                confirmLabel="Eliminar"
-                                onConfirm={async () => {
-                                    await new Promise((r) => setTimeout(r, 1000));
-                                }}
-                                toastMessages={{
-                                    loading: 'Eliminando…',
-                                    success: 'Elemento eliminado',
-                                    error: 'Error al eliminar',
-                                }}
+                    <CardContent className="grid gap-6">
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Single</h3>
+                            <Combobox
+                                id="cb-single"
+                                options={OPTIONS}
+                                value={single}
+                                onChange={(v) => setSingle(typeof v === 'string' ? v : '')}
+                                placeholder="Selecciona una fruta…"
+                                searchPlaceholder="Buscar fruta…"
+                                allowCreate
                             />
-
-                            <ConfirmWithReasonDialog
-                                trigger={<Button variant="outline">Eliminar con motivo…</Button>}
-                                title="Eliminar elemento con motivo"
-                                description="Indica el motivo de la eliminación."
-                                confirmLabel="Eliminar"
-                                validateReason={(r) => (r.trim().length < 3 ? 'Mínimo 3 caracteres' : null)}
-                                onConfirm={async (reason) => {
-                                    await new Promise((r) => setTimeout(r, 1200));
-                                    console.log('Motivo:', reason);
-                                }}
-                                toastMessages={{
-                                    loading: 'Procesando…',
-                                    success: () => 'Listo',
-                                    error: () => 'Error',
-                                }}
+                            <p className="text-muted-foreground text-sm">Valor: {single || '—'}</p>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Multiple</h3>
+                            <Combobox
+                                id="cb-multi"
+                                options={OPTIONS}
+                                value={multi}
+                                onChange={(v) => setMulti(Array.isArray(v) ? v : [])}
+                                multiple
+                                placeholder="Selecciona frutas…"
+                                searchPlaceholder="Buscar frutas…"
+                                allowCreate
                             />
+                            <p className="text-muted-foreground text-sm">Valores: {multi.length ? multi.join(', ') : '—'}</p>
                         </div>
                     </CardContent>
                 </Card>
-            </div>
 
-            {/* Stats & Tooltip */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Métricas & Tooltip</CardTitle>
-                    <CardDescription>Tarjetas con variación de tendencia y ejemplo de ayuda contextual.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <StatsCard title="Ingresos" value="$24.3k" delta={12.3} intent="success" deltaDirection="auto" subtitle="Últimos 30 días" />
-                        <StatsCard
-                            title="Suscripciones"
-                            value="1,204"
-                            delta={-4.5}
-                            intent="error"
-                            deltaDirection="auto"
-                            subtitle="vs. período anterior"
-                        />
-                    </div>
-                    <div>
-                        <SimpleTooltip content="Este botón tiene una ayuda contextual" side="top">
-                            <Button variant="outline">Hover o foco para ver Tooltip</Button>
-                        </SimpleTooltip>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* DataTable Demo */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>DataTable — TanStack v8</CardTitle>
-                    <CardDescription>Tabla con búsqueda global, selección, exportación y acciones contextualizadas.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <DataTable
-                        columns={userColumns}
-                        data={currentPageUsers}
-                        rowCount={processedUsers.length}
-                        pageIndex={pageIndex}
-                        pageSize={pageSize}
-                        onPageChange={setPageIndex}
-                        onPageSizeChange={setPageSize}
-                        sorting={sorting}
-                        onSortingChange={setSorting}
-                        rowSelection={rowSelection}
-                        onRowSelectionChange={setRowSelection}
-                        columnVisibility={columnVisibility}
-                        onColumnVisibilityChange={setColumnVisibility}
-                        globalFilter={globalFilter}
-                        onGlobalFilterChange={(value) => setGlobalFilter(value ?? '')}
-                        getRowId={defaultRowIdGetter}
-                        permissions={{
-                            canCreate: true,
-                            canEdit: true,
-                            canDelete: true,
-                            canExport: true,
-                            canBulkDelete: true,
-                        }}
-                        onExportClick={(_format, table) => {
-                            // Demo: Export using column meta-driven export
-                            exportVisibleAsCSV(table, 'usuarios-filtrados.csv');
-                        }}
-                        onDeleteSelectedClick={() => {
-                            const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
-                            if (selectedIds.length > 0) {
-                                setDeleteConfirm({
-                                    show: true,
-                                    type: 'bulk',
-                                    count: selectedIds.length,
-                                });
-                            } else {
-                                toast.error('Selecciona al menos un usuario para eliminar');
-                            }
-                        }}
-                        emptyState={
-                            <div className="py-8 text-center">
-                                <p className="text-muted-foreground">No hay usuarios para mostrar</p>
-                                <Button variant="outline" className="mt-2">
-                                    Agregar usuario
-                                </Button>
+                {/* Date Pickers */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Date Picker</CardTitle>
+                        <CardDescription>Controles para fecha única y rango con presets y zona horaria.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap items-start gap-6">
+                            <div className="space-y-2">
+                                <h3 className="text-muted-foreground text-sm font-medium">Fecha única</h3>
+                                <DatePicker
+                                    id="dp-single"
+                                    mode="single"
+                                    value={dateSingle}
+                                    onChange={(v) => setDateSingle(v as Date | undefined)}
+                                    placeholder="Selecciona una fecha"
+                                    timezoneHint="Zona horaria del navegador"
+                                />
+                                <p className="text-muted-foreground text-sm">Valor: {dateSingle ? dateSingle.toLocaleDateString() : '—'}</p>
                             </div>
-                        }
-                    />
-                </CardContent>
-            </Card>
+                            <div className="space-y-2">
+                                <h3 className="text-muted-foreground text-sm font-medium">Rango de fechas</h3>
+                                <DatePicker
+                                    id="dp-range"
+                                    mode="range"
+                                    value={dateRange}
+                                    onChange={(v) => setDateRange(v as DateRange | undefined)}
+                                    presets={[
+                                        { label: 'Últimos 7 días', getValue: () => ({ from: new Date(Date.now() - 6 * 86400000), to: new Date() }) },
+                                        {
+                                            label: 'Este mes',
+                                            getValue: () => {
+                                                const now = new Date();
+                                                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                                                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                                                return { from: start, to: end };
+                                            },
+                                        },
+                                    ]}
+                                    placeholder="Selecciona un rango"
+                                />
+                                <p className="text-muted-foreground text-sm">
+                                    Valor: {dateRange?.from ? dateRange.from.toLocaleDateString() : '—'} –{' '}
+                                    {dateRange?.to ? dateRange.to.toLocaleDateString() : '—'}
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-            {/* Delete Confirmation Dialogs */}
-            <ConfirmAlert
-                open={deleteConfirm.show}
-                onOpenChange={(open) => {
-                    if (!open) {
+                {/* Menús y Diálogos */}
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Menús</CardTitle>
+                            <CardDescription>Acciones globales y por fila con accesibilidad y atajos.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-3">
+                                <RowActionsMenuBasic
+                                    onEdit={() => toast.success('Editar (demo)')}
+                                    onDelete={() => toast.success('Eliminar (demo)')}
+                                />
+                                <GlobalActionsMenuBasic
+                                    onExport={() => setExportOpen(true)}
+                                    onDeleteSelected={() => toast.success('Eliminar seleccionados (demo)')}
+                                    ref={globalActionsRef}
+                                />
+                            </div>
+                            <ExportDialog
+                                open={exportOpen}
+                                onOpenChange={setExportOpen}
+                                title="Exportar datos"
+                                onExport={async (format: ExportFormat) => {
+                                    await new Promise((r) => setTimeout(r, 1000));
+                                    console.log('Export format:', format);
+                                }}
+                                toastMessages={{
+                                    loading: 'Exportando…',
+                                    success: 'Export listo',
+                                    error: 'Error al exportar',
+                                }}
+                                focusAfterClose={globalActionsRef}
+                            />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Diálogos</CardTitle>
+                            <CardDescription>Confirmaciones accesibles con feedback y validación.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <ConfirmAlert
+                                    trigger={<Button variant="destructive">Eliminar simple…</Button>}
+                                    title="¿Eliminar elemento?"
+                                    description="Esta acción no se puede deshacer."
+                                    confirmLabel="Eliminar"
+                                    onConfirm={async () => {
+                                        await new Promise((r) => setTimeout(r, 1000));
+                                    }}
+                                    toastMessages={{
+                                        loading: 'Eliminando…',
+                                        success: 'Elemento eliminado',
+                                        error: 'Error al eliminar',
+                                    }}
+                                />
+
+                                <ConfirmWithReasonDialog
+                                    trigger={<Button variant="outline">Eliminar con motivo…</Button>}
+                                    title="Eliminar elemento con motivo"
+                                    description="Indica el motivo de la eliminación."
+                                    confirmLabel="Eliminar"
+                                    validateReason={(r) => (r.trim().length < 3 ? 'Mínimo 3 caracteres' : null)}
+                                    onConfirm={async (reason) => {
+                                        await new Promise((r) => setTimeout(r, 1200));
+                                        console.log('Motivo:', reason);
+                                    }}
+                                    toastMessages={{
+                                        loading: 'Procesando…',
+                                        success: () => 'Listo',
+                                        error: () => 'Error',
+                                    }}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Stats & Tooltip */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Métricas & Tooltip</CardTitle>
+                        <CardDescription>Tarjetas con variación de tendencia y ejemplo de ayuda contextual.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <StatsCard
+                                title="Ingresos"
+                                value="$24.3k"
+                                delta={12.3}
+                                intent="success"
+                                deltaDirection="auto"
+                                subtitle="Últimos 30 días"
+                            />
+                            <StatsCard
+                                title="Suscripciones"
+                                value="1,204"
+                                delta={-4.5}
+                                intent="error"
+                                deltaDirection="auto"
+                                subtitle="vs. período anterior"
+                            />
+                        </div>
+                        <div>
+                            <SimpleTooltip content="Este botón tiene una ayuda contextual" side="top">
+                                <Button variant="outline">Hover o foco para ver Tooltip</Button>
+                            </SimpleTooltip>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* DataTable Demo */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>DataTable — TanStack v8</CardTitle>
+                        <CardDescription>Tabla con búsqueda global, selección, exportación y acciones contextualizadas.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable
+                            columns={userColumns}
+                            data={currentPageUsers}
+                            rowCount={processedUsers.length}
+                            pageIndex={pageIndex}
+                            pageSize={pageSize}
+                            onPageChange={setPageIndex}
+                            onPageSizeChange={setPageSize}
+                            sorting={sorting}
+                            onSortingChange={setSorting}
+                            rowSelection={rowSelection}
+                            onRowSelectionChange={setRowSelection}
+                            columnVisibility={columnVisibility}
+                            onColumnVisibilityChange={setColumnVisibility}
+                            globalFilter={globalFilter}
+                            onGlobalFilterChange={(value) => setGlobalFilter(value ?? '')}
+                            getRowId={defaultRowIdGetter}
+                            permissions={{
+                                canCreate: true,
+                                canEdit: true,
+                                canDelete: true,
+                                canExport: true,
+                                canBulkDelete: true,
+                            }}
+                            onExportClick={(_format, table) => {
+                                // Demo: Export using column meta-driven export
+                                exportVisibleAsCSV(table, 'usuarios-filtrados.csv');
+                            }}
+                            onDeleteSelectedClick={() => {
+                                const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+                                if (selectedIds.length > 0) {
+                                    setDeleteConfirm({
+                                        show: true,
+                                        type: 'bulk',
+                                        count: selectedIds.length,
+                                    });
+                                } else {
+                                    toast.error('Selecciona al menos un usuario para eliminar');
+                                }
+                            }}
+                            emptyState={
+                                <div className="py-8 text-center">
+                                    <p className="text-muted-foreground">No hay usuarios para mostrar</p>
+                                    <Button variant="outline" className="mt-2">
+                                        Agregar usuario
+                                    </Button>
+                                </div>
+                            }
+                        />
+                    </CardContent>
+                </Card>
+
+                {/* Delete Confirmation Dialogs */}
+                <ConfirmAlert
+                    open={deleteConfirm.show}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setDeleteConfirm({ show: false, type: 'single' });
+                        }
+                    }}
+                    title={deleteConfirm.type === 'single' ? 'Eliminar Usuario' : 'Eliminar Usuarios Seleccionados'}
+                    description={
+                        deleteConfirm.type === 'single' && deleteConfirm.data
+                            ? `¿Estás seguro de eliminar a "${deleteConfirm.data.name}"? Esta acción no se puede deshacer.`
+                            : `¿Estás seguro de eliminar ${deleteConfirm.count} usuarios seleccionados? Esta acción no se puede deshacer.`
+                    }
+                    confirmLabel="Eliminar"
+                    onConfirm={async () => {
+                        if (deleteConfirm.type === 'single' && deleteConfirm.data) {
+                            await demoDeleteSingle(deleteConfirm.data.id, deleteConfirm.data.name);
+                        } else if (deleteConfirm.type === 'bulk' && deleteConfirm.count) {
+                            await demoDeleteBulk(deleteConfirm.count);
+                            setRowSelection({});
+                        }
                         setDeleteConfirm({ show: false, type: 'single' });
-                    }
-                }}
-                title={deleteConfirm.type === 'single' ? 'Eliminar Usuario' : 'Eliminar Usuarios Seleccionados'}
-                description={
-                    deleteConfirm.type === 'single' && deleteConfirm.data
-                        ? `¿Estás seguro de eliminar a "${deleteConfirm.data.name}"? Esta acción no se puede deshacer.`
-                        : `¿Estás seguro de eliminar ${deleteConfirm.count} usuarios seleccionados? Esta acción no se puede deshacer.`
-                }
-                confirmLabel="Eliminar"
-                onConfirm={async () => {
-                    if (deleteConfirm.type === 'single' && deleteConfirm.data) {
-                        await demoDeleteSingle(deleteConfirm.data.id, deleteConfirm.data.name);
-                    } else if (deleteConfirm.type === 'bulk' && deleteConfirm.count) {
-                        await demoDeleteBulk(deleteConfirm.count);
-                        setRowSelection({});
-                    }
-                    setDeleteConfirm({ show: false, type: 'single' });
-                }}
-            />
-        </div>
+                    }}
+                />
+            </div>
+        </>
     );
 }

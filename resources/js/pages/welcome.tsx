@@ -57,7 +57,7 @@ export default function Welcome() {
                         </div>
                         <h1 className="mt-4 text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
                             <span className="from-primary bg-gradient-to-r to-violet-500 bg-clip-text text-transparent">
-                                Construye apps serias más rápido
+                                Acelera el desarrollo de aplicaciones web
                             </span>
                         </h1>
                         <p className="text-muted-foreground mt-4 max-w-xl text-pretty">
