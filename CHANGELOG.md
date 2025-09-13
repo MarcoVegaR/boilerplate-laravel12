@@ -1,3 +1,9 @@
+# [1.9.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.8.0...v1.9.0) (2025-09-13)
+
+### Features
+
+- **catalog:** dynamic FE from --fields; add labels; fix generator; update docs ([ec85a2d](https://github.com/MarcoVegaR/boilerplate-laravel12/commit/ec85a2d86e860d04cec804d85a20dcf7a8d0786d))
+
 # [1.8.0](https://github.com/MarcoVegaR/boilerplate-laravel12/compare/v1.7.0...v1.8.0) (2025-09-11)
 
 ### Features
